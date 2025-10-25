@@ -1,0 +1,7 @@
+%h5 Flashcard Settings
+= form('/settings', method=:post) do |f|
+  = link_to( 'cancel', "/", { :id => "cancel", :title => "cancel setting changes" } )
+  = submit( 'start', :value => 'start »' )
+  = f.label(:side, '&emsp;')
+  = submit( 'stop',  :value => 'off »' )
+

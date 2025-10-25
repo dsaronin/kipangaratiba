@@ -1,0 +1,8 @@
+# list of system names for packages required by the application
+# Note: this should be name by which the package will be invoked 
+# in a system call
+
+[DPKG]
+
+[FLATPAK]
+org.chromium.Chromium
