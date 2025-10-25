@@ -36,11 +36,6 @@ class KipangaratibaWork
       # Instantiate Singletons here. Their initialize methods will call verify_configuration.
       # @my_monitor   = Monitor.instance
 
-      # auto turn on vpn if in production
-      unless Environ::IS_DEVELOPMENT
-        @my_openvpn.start_vpn   # make sure vpn has started
-      end
-
       Environ.log_info("KipangaratibaWork: All device configurations successful")
 
       # RESCUE BLOCK =======================================================
