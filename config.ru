@@ -47,25 +47,24 @@ configure do
 # --------------------------------------------------
 # system environment confirmed; start application
 # --------------------------------------------------
-  Kipangaratiba = Kipangaratiba::KipangaratibaWork.new 
-  Kipangaratiba.setup_work()    # initialization of everything
+  KIPANGARATIBA = Kipangaratiba::KipangaratibaWork.new 
+  KIPANGARATIBA.setup_work()    # initialization of everything
 
   PUBLIC_DIR = File.join(File.dirname(__FILE__), 'public')
 
   set :public_folder, PUBLIC_DIR
   set :root, File.dirname(__FILE__)
   set :haml, { escape_html: false }
-  set :session_secret, ENV['TEMPLATE_APP_NAME_TOKEN'] 
+  set :session_secret, ENV['KIPANGARATIBA_TOKEN'] 
 
   Kipangaratiba::Environ.log_info  "Config: PUBLIC_DIR: #{PUBLIC_DIR}"
-  Kipangaratiba::Environ.log_warn  "Config: #{Kipangaratiba.do_version} ... initialization completed."
+  Kipangaratiba::Environ.log_warn  "Config: #{KIPANGARATIBA.do_version} ... initialization completed."
   
   # outputs name, version number
 
 end  # configure
 
-run Kipangaratiba::Kipangaratiba
-
+run Kipangaratiba::KipangaratibaApp
 
 # notes for execution
 # thin -R config.ru -a 0.0.0.0 -p 8090 start
