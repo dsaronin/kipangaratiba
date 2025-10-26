@@ -1,15 +1,11 @@
 # config.ru
 
 require 'sinatra'
+require 'sidekiq/web'
 require_relative './app/kipangaratiba_app'
 require_relative './app/kipangaratiba_work'
+
 # --------------------------------------------------
-# *** TEMPLATE USAGE substitution replacements ***
-# kipangaratiba -> application name: angalia, majozi, etc
-# KIPANGARATIBA -> ditto, but all caps
-# Kipangaratiba -> overall module name for project
-# Kipangaratiba -> primary class name for project
-# KipangaratibaWork -> work class name for project
 # --------------------------------------------------
 
 # --------------------------------------------------
@@ -64,7 +60,21 @@ configure do
 
 end  # configure
 
-run Kipangaratiba::KipangaratibaApp
+# run Kipangaratiba::KipangaratibaApp
+
+# handle special sidekiq GUI web I/F 
+map "/sidekiq" do
+  # Add Rack session middleware specifically for Sidekiq::Web
+  # Use the same secret as the main app for consistency
+  use Rack::Session::Cookie, secret: ENV['KIPANGARATIBA_TOKEN'], same_site: true, max_age: 86400
+  run Sidekiq::Web
+end
+
+# default is for everything else to go to Sinatra
+map "/" do
+  run Kipangaratiba::KipangaratibaApp
+end
+
 
 # notes for execution
 # thin -R config.ru -a 0.0.0.0 -p 8090 start
