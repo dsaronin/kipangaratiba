@@ -9,6 +9,7 @@
 
   require_relative 'environ'
   require_relative 'kipangaratiba_error' # for KipangaratibaError classes
+  require_relative 'kipanga_scheduler'  
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++
 module Kipangaratiba # Define the top-level module
@@ -34,7 +35,7 @@ class KipangaratibaWork
 
     begin
       # Instantiate Singletons here. Their initialize methods will call verify_configuration.
-      # @my_monitor   = Monitor.instance
+      @my_scheduler = KipangaScheduler.instance
 
       Environ.log_info("KipangaratibaWork: All device configurations successful")
 
