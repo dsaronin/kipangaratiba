@@ -33,7 +33,7 @@ class KipangaScheduler
   def verify_configuration
     Environ.log_info("KipangaScheduler: Verifying configuration.")
     begin
-      info = Sidekiq.Sidekiq.redis_pool.with { |conn| conn.info }
+      info = Sidekiq.redis_pool.with { |conn| conn.info }
       Environ.log_info("KipangaScheduler: Redis connection verified. Version: #{info['redis_version']}")
     rescue => e
       Environ.log_error("KipangaScheduler: FAILED to connect to Redis: #{e.message}")
