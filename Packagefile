@@ -3,6 +3,8 @@
 # in a system call
 
 [DPKG]
+systemctl
+redis-server
 
 [FLATPAK]
 org.chromium.Chromium

@@ -11,3 +11,5 @@ gem 'haml'
 gem 'sinatra-formhelpers-ng'
 gem 'rack-flash3'
 
+gem 'sidekiq'
+gem 'sidekiq-cron'
