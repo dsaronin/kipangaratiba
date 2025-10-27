@@ -16,6 +16,13 @@ module Kipangaratiba
   class ShellWorker
     include Sidekiq::Worker
 
+    # --- Job Configuration ---
+    # Set a custom retry schedule:
+    # 3 retries, spaced 5 minutes (300 seconds) apart.
+    # Total time: 15 minutes before moving to 'Dead' queue.
+
+    sidekiq_options retry: [300, 300, 300]
+
   # ------------------------------------------------------------
   # perform  -- expected method called BY the Sidekiq server process
   # activity_args: array of arguments to be passed to perform.
