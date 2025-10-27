@@ -6,7 +6,6 @@
 
 require 'singleton'
 require_relative 'environ' # Required for Environ.log_info, Environ.my_monitor_default
-require_relative 'kipangaratiba_error' # Required for KipangaSchedulerError, KipangaSchedulerOperationError
 
 # --- Additions for Sidekiq ---
 require 'sidekiq'
