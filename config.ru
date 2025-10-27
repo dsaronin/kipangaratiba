@@ -2,8 +2,10 @@
 
 require 'sinatra'
 require 'sidekiq/web'
+require 'sidekiq/cron/web'
 require_relative './app/kipangaratiba_app'
 require_relative './app/kipangaratiba_work'
+require_relative './app/shell_worker'
 
 # --------------------------------------------------
 # --------------------------------------------------
