@@ -37,6 +37,12 @@ class KipangaratibaWork
       # Instantiate Singletons here. Their initialize methods will call verify_configuration.
       @my_scheduler = KipangaScheduler.instance
 
+      # Load the meeting schedule on application startup
+      @my_scheduler.setup_meetings(
+        Environ::MEETING_INITIALIZATION_FILE,
+        resetcron: true
+      )
+
       Environ.log_info("KipangaratibaWork: All device configurations successful")
 
       # RESCUE BLOCK =======================================================

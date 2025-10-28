@@ -26,6 +26,11 @@ class Environ
   APP_NAME_HEAD = APP_NAME + ": "
   KIPANGARATIBA_HELP = "flags (f), options (o), help (h), version (v), quit (q), exit (x)" +
     ""
+
+  # --- Meeting Schedule Constants ---
+  MEETING_INITIALIZATION_FILE = "app/assets/meeting_schedule.yml"
+  MEETING_SCRIPT_TEMPLATE     = "bash ~/bin/nop_test.sh '%{meeting_name}'"
+
   #  ------------------------------------------------------------
   EXIT_CMD  = "q"  # default CLI exit command used if EOF
   #  ------------------------------------------------------------

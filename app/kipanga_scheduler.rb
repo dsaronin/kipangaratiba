@@ -5,6 +5,7 @@
 #
 
 require 'singleton'
+require 'yaml'
 require_relative 'environ' # Required for Environ.log_info, Environ.my_monitor_default
 
 # --- Additions for Sidekiq ---
@@ -19,6 +20,20 @@ module Kipangaratiba              # Define the top-level module
 
 class KipangaScheduler
   include Singleton
+
+  # --- Private Class Constant for Day Mapping ---
+  DAY_OF_WEEK_MAP = {
+    'sunday'    => 0,
+    'monday'    => 1,
+    'tuesday'   => 2,
+    'wednesday' => 3,
+    'thursday'  => 4,
+    'friday'    => 5,
+    'saturday'  => 6
+  }.freeze
+  
+  private_constant :DAY_OF_WEEK_MAP
+  # ------------------------------------------------------------
 
   def initialize
     setup_sidekiq_config # Configure Redis connection first
@@ -116,8 +131,79 @@ class KipangaScheduler
     self.schedule_cron_job(options_hash) # Calls wrapper   )
   end
 
+  # ------------------------------------------------------------
+  # --- BUSINESS LOGIC METHODS (Loading Schedule) ---
+  # ------------------------------------------------------------
+
+  #  ------------------------------------------------------------
+  #  self.load_schedule_from_yml -- loads and schedules all meetings
+  #  file_path [String] -- path to the YAML schedule file
+  #  ------------------------------------------------------------
+  def self.load_schedule_from_yml(file_path)
+    Environ.log_info("KipangaScheduler: Loading schedule from #{file_path}...")
+    begin
+      schedule_data = YAML.load_file(file_path)
+      schedule_data.each do |meeting_hash|
+        self.schedule_a_meeting(meeting_hash)
+      end
+    rescue => e
+      Environ.log_error("KipangaScheduler: FAILED to load schedule: #{e.message}")
+    end
+  end
+
+  #  ------------------------------------------------------------
+  #  self.schedule_a_meeting -- translates a meeting hash into a cron job
+  #  meeting_hash [Hash] -- a single meeting definition from YAML
+  #  ------------------------------------------------------------
+  def self.schedule_a_meeting(meeting_hash)
+    # Get meeting details
+    meeting_name = meeting_hash['meeting']
+    week_day_str = meeting_hash['week_day']&.downcase
+    start_time   = meeting_hash['start_time']
+
+    # Translate to cron components
+    day_of_week = DAY_OF_WEEK_MAP[week_day_str]
+    hour, min   = start_time.to_s.split(':').map(&:to_i)
+
+    # Build command string
+    command_string = sprintf(
+      Environ::MEETING_SCRIPT_TEMPLATE, meeting_name: meeting_name
+    )
+
+    # Build cron string: (min hour day-of-month month day-of-week)
+    cron_string = "#{min} #{hour} * * #{day_of_week}"
+
+    # Build options hash for the generic wrapper
+    job_name = "#{meeting_name} (#{week_day_str.capitalize})"
+    options_hash = {
+      name:  job_name,
+      cron:  cron_string,
+      class: 'Kipangaratiba::ShellWorker',
+      args:  [command_string]
+    }
+
+    # Call the generic wrapper
+    self.schedule_cron_job(options_hash)
+  end
+
+  #  ------------------------------------------------------------
+  #  setup_meetings -- loads schedule from yml; optionally resets cron
+  #  filename [String] -- path to the YAML schedule file
+  #  resetcron [Boolean] -- if true, deletes all old cron jobs first
+  #  ------------------------------------------------------------
+  def setup_meetings(filename, resetcron: true)
+    if resetcron
+      Sidekiq::Cron::Job.destroy_all!
+      Environ.log_info("KipangaScheduler: Cleared all old cron jobs.")
+    end
+
+    # Load the schedule
+    KipangaScheduler.load_schedule_from_yml(filename)
+  end
+
   #  ------------------------------------------------------------
   #  ------------------------------------------------------------
+
 private
 
   # ------------------------------------------------------------
