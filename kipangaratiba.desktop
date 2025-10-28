@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Exec=/home/angalia-hub/bin/start_kipangaratiba.sh
+Hidden=false
+NoDisplay=false
+Name=Kipangaratiba Scheduler
+Comment=Starts the Kipangaratiba web and worker processes
