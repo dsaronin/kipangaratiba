@@ -27,16 +27,38 @@ class Environ
   KIPANGARATIBA_HELP = "flags (f), options (o), help (h), version (v), quit (q), exit (x)" +
     ""
 
-  # --- Meeting Schedule Constants ---
-  MEETING_INITIALIZATION_FILE = "app/assets/meeting_schedule.yml"
-  MEETING_SCRIPT_TEMPLATE     = "bash ~/bin/nop_test.sh '%{meeting_name}'"
-
   #  ------------------------------------------------------------
   EXIT_CMD  = "q"  # default CLI exit command used if EOF
   #  ------------------------------------------------------------
   IS_DEVELOPMENT = ( ENV['SINATRA_ENV'] == "development" )
   DEBUG_VPN_OFF =  (ENV['DEBUG_ENV']  == "true" )
   DEBUG_MODE =  (ENV['DEBUG_ENV'] == "true"  )
+
+  #  ------------------------------------------------------------
+  # --- Meeting Schedule Constants ---
+  #  ------------------------------------------------------------
+  MEETING_INITIALIZATION_FILE = "app/assets/meeting_schedule.yml"
+
+  if IS_DEVELOPMENT
+    # --- Development Paths (for 'nop_test.sh') ---
+    
+    # Template for the script that STARTS a meeting
+    START_SCRIPT_TEMPLATE = "bash ~/bin/nop_test.sh 'START: %{meeting_name}'"
+    
+    # Template for the script that STOPS a meeting
+    STOP_SCRIPT_TEMPLATE  = "bash ~/bin/nop_test.sh 'STOP'"
+   
+  else
+    # --- Production Paths (on 'angalia') ---
+    
+    # Template for the script that STARTS a meeting (requires meeting_name)
+    START_SCRIPT_TEMPLATE = "bash /home/angalia-hub/bin/start_public_video.sh '%{meeting_name}'"
+    
+    # Command for the script that STOPS a meeting (takes no arguments)
+    STOP_SCRIPT_TEMPLATE  = "bash /home/angalia-hub/bin/stop_public_video.sh"
+  end 
+
+  #  ------------------------------------------------------------
 
   #  ------------------------------------------------------------
   #  GLOBAL CONSTANTS

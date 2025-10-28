@@ -160,31 +160,39 @@ class KipangaScheduler
     meeting_name = meeting_hash['meeting']
     week_day_str = meeting_hash['week_day']&.downcase
     start_time   = meeting_hash['start_time']
+    stop_time    = meeting_hash['stop_time'] # Will be nil if not present
 
-    # Translate to cron components
+    # Translate day_of_week, with default
     day_of_week = DAY_OF_WEEK_MAP[week_day_str]
-    hour, min   = start_time.to_s.split(':').map(&:to_i)
+    day_name_for_job = ''
 
-    # Build command string
-    command_string = sprintf(
-      Environ::MEETING_SCRIPT_TEMPLATE, meeting_name: meeting_name
+    if day_of_week.nil?
+      Environ.log_warn("KipangaScheduler: Invalid day '#{week_day_str}'. Defaulting to Monday.")
+      day_of_week = DAY_OF_WEEK_MAP['monday'] # Default to 1
+      day_name_for_job = 'Monday'
+    else
+      day_name_for_job = week_day_str.capitalize
+    end
+
+    # Create the START Job ---
+    self._build_and_schedule(
+      meeting_name,
+      'Start',
+      start_time,
+      day_of_week,
+      day_name_for_job
     )
 
-    # Build cron string: (min hour day-of-month month day-of-week)
-    cron_string = "#{min} #{hour} * * #{day_of_week}"
+    # Create the STOP Job ---
+    self._build_and_schedule(
+      meeting_name,
+      'Stop',
+      stop_time,
+      day_of_week,
+      day_name_for_job
+    )
+  end # self.schedule_a_meeting
 
-    # Build options hash for the generic wrapper
-    job_name = "#{meeting_name} (#{week_day_str.capitalize})"
-    options_hash = {
-      name:  job_name,
-      cron:  cron_string,
-      class: 'Kipangaratiba::ShellWorker',
-      args:  [command_string]
-    }
-
-    # Call the generic wrapper
-    self.schedule_cron_job(options_hash)
-  end
 
   #  ------------------------------------------------------------
   #  setup_meetings -- loads schedule from yml; optionally resets cron
@@ -205,6 +213,60 @@ class KipangaScheduler
   #  ------------------------------------------------------------
 
 private
+
+    #  ------------------------------------------------------------
+    #  _build_and_schedule -- helper to build and schedule a single job
+    #  (Skips if time_str is nil or empty)
+    #  meeting_name [String] -- name of the meeting
+    #  job_type [String] -- 'Start' or 'Stop'
+    #  time_str [String] -- 'HH:MM'
+    #  day_of_week [Integer] -- 0-6
+    #  day_name [String] -- 'Monday'
+    #  ------------------------------------------------------------
+    def self._build_and_schedule(meeting_name, job_type, time_str, day_of_week, day_name)
+      
+      # Check if the time is provided before proceeding
+      if time_str && !time_str.to_s.empty?
+        # Parse time
+        hour, min = time_str.to_s.split(':').map(&:to_i)
+        
+        # Build cron string
+        cron_string = "#{min} #{hour} * * #{day_of_week}"
+        
+        # Build command string based on type
+        command_string = ""
+
+        if job_type == 'Start'
+          # START_SCRIPT_TEMPLATE requires string formatting
+          command_string = sprintf(
+            Environ::START_SCRIPT_TEMPLATE,
+            meeting_name: meeting_name
+          )
+        else # 'Stop'
+          # STOP_SCRIPT_TEMPLATE is a static string
+          command_string = Environ::STOP_SCRIPT_TEMPLATE
+        end   # fi..else start/stop check
+
+        # Build job name
+        job_name = "#{meeting_name} (#{job_type} - #{day_name})"
+        
+        # Build options hash
+        options_hash = {
+          name:  job_name,
+          cron:  cron_string,
+          class: 'Kipangaratiba::ShellWorker',
+          args:  [command_string]
+        }
+        
+        # Call the generic wrapper
+        self.schedule_cron_job(options_hash)
+
+      else  # missing/empty time_str; gracefully ignore & log it
+        # Log that we are intentionally skipping this job
+        Environ.log_info("KipangaScheduler: No '#{job_type}' time for '#{meeting_name}'. Skipping.")
+      end  # fi..else.. missing time_str
+
+    end   # def _build_and_schedule
 
   # ------------------------------------------------------------
   # setup_sidekiq_config -- Configures Sidekiq client and server
