@@ -7,7 +7,7 @@
 
 # Navigate to the application directory
 # (Adjust path if this script is not on 'jabari' for 'daudi')
-cd "/home/daudi/projectspace/kipangaratiba" || { echo "Failed to change directory" >&2; exit 1; }
+cd "/home/angalia-hub/projects/kipangaratiba" || { echo "Failed to change directory" >&2; exit 1; }
 
 # Use the specific Ruby version and gemset
 rvm use ruby-3.2.2@kipangaratiba
