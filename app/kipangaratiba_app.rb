@@ -76,18 +76,18 @@ class KipangaratibaApp < Sinatra::Application
    # ------------------------------------------------------------
    get '/testnop' do
      # Call the class methods on the scheduler
-     KipangaScheduler.schedule_nop_activity
-     KipangaScheduler.schedule_nop_script
-     KipangaScheduler.schedule_job_in(
+     KIPANGARATIBA.my_scheduler.schedule_nop_activity
+     KIPANGARATIBA.my_scheduler.schedule_nop_script
+     KIPANGARATIBA.my_scheduler.schedule_job_in(
        60, # 1 minute
-       "bash ~/bin/nop_test.sh 'Interval NOP job'"
+       "bash ~/bin/nop_test.sh 'Interval NOP job (1-min)'"
      )
  
-     # 4. 'schedule_job_at' (runs in 120 seconds)
+     # 'schedule_job_at' (runs in 120 seconds)
      target_time_at = Time.now + (2 * 60) # 2 minutes
-     KipangaScheduler.schedule_job_at(
+     KIPANGARATIBA.my_scheduler.schedule_job_at(
        target_time_at,
-       "bash ~/bin/nop_test.sh 'non-cron scheduled NOP job'"
+       "bash ~/bin/nop_test.sh 'non-cron scheduled NOP job (2-min)'"
      ) 
      flash[:notice] = "TESTNOP: Scheduled 4 NOP jobs"
      redirect '/'

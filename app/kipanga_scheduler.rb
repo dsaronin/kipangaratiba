@@ -68,6 +68,14 @@ class KipangaScheduler
     Environ.log_info("KipangaScheduler: PURGING ALL previous cron jobs")
   end
 
+  def reset_sidekiq_queues
+    Sidekiq::DeadSet.new.clear
+    Sidekiq::RetrySet.new.clear
+    Sidekiq::ScheduledSet.new.clear
+    Sidekiq::Queue.all.each(&:clear)
+    Environ.log_info("KipangaScheduler: PURGING ALL sidekiq queues")
+  end
+
   # ------------------------------------------------------------
   # NOTE: all parameters for scheduling follow same format
   # *args [Array] -- Arguments to pass to ShellWorker.perform

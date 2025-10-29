@@ -17,6 +17,10 @@ module Kipangaratiba # Define the top-level module
 
 class KipangaratibaWork
 
+  # ------------------------------------------------------------
+  attr_reader :my_scheduler
+  # ------------------------------------------------------------
+
   APPNAME_VERSION = Environ.app_name + " v" + Environ.kipangaratiba_version
 
   # ------------------------------------------------------------
@@ -35,6 +39,7 @@ class KipangaratibaWork
     begin
       # Instantiate Singletons here. Their initialize methods will call verify_configuration.
       @my_scheduler = KipangaScheduler.instance
+      @my_scheduler.reset_sidekiq_queues   # reset sidekiq queues
       @my_scheduler.reset_cron_table   # purge all cron entries
 
       @my_scheduler.load_schedule_from_yml(
