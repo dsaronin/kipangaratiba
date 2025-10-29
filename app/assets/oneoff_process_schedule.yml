@@ -1,0 +1,7 @@
+#
+# This is a list of generic, recurring (cron) processes.
+#
+- name: 'openVPN connection watchdog'
+  cron: '*/20 * * * *'
+  command: "bash /home/daudi/bin/nop_test.sh 'openVPN watchdog'"
+#  command: 'bash /home/angalia-hub/bin/run_vpn_watchdog.sh'

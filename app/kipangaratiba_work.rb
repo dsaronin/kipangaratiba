@@ -28,7 +28,6 @@ class KipangaratibaWork
 
   # ------------------------------------------------------------
   # setup_work -- handles initializing kipangaratiba system
-  # This is the primary point for all critical device configurations.
   # ------------------------------------------------------------
   def setup_work()
     Environ.log_info("KipangaratibaWork: " + APPNAME_VERSION + ": starting setup...")
@@ -36,11 +35,24 @@ class KipangaratibaWork
     begin
       # Instantiate Singletons here. Their initialize methods will call verify_configuration.
       @my_scheduler = KipangaScheduler.instance
+      @my_scheduler.reset_cron_table   # purge all cron entries
 
-      # Load the meeting schedule on application startup
-      @my_scheduler.setup_meetings(
-        Environ::MEETING_INITIALIZATION_FILE,
-        resetcron: true
+      @my_scheduler.load_schedule_from_yml(
+        file_path: Environ::MEETING_INITIALIZATION_FILE,
+        log_name: "meeting schedule",
+        translator_method: :schedule_a_meeting
+      )
+
+      @my_scheduler.load_schedule_from_yml(
+        file_path: Environ::ONEOFF_MEETING_INITIALIZATION_FILE,
+        log_name: "oneoff schedule",
+        translator_method: :schedule_a_one_off_meeting
+      )
+
+      @my_scheduler.load_schedule_from_yml(
+        file_path: Environ::ONEOFF_PROCESS_INITIALIZATION_FILE,
+        log_name: "cron procss schedule",
+        translator_method: :schedule_cron_process
       )
 
       Environ.log_info("KipangaratibaWork: All device configurations successful")

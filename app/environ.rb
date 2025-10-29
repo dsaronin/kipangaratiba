@@ -38,7 +38,9 @@ class Environ
   # --- Meeting Schedule Constants ---
   #  ------------------------------------------------------------
   MEETING_INITIALIZATION_FILE = "app/assets/meeting_schedule.yml"
-
+  ONEOFF_MEETING_INITIALIZATION_FILE = "app/assets/oneoff_meeting_schedule.yml"
+  ONEOFF_PROCESS_INITIALIZATION_FILE = "app/assets/oneoff_process_schedule.yml"
+  
   if IS_DEVELOPMENT
     # --- Development Paths (for 'nop_test.sh') ---
     
