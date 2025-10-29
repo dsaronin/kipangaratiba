@@ -83,6 +83,13 @@ class KipangaratibaApp < Sinatra::Application
        "bash ~/bin/nop_test.sh 'Interval NOP job (1-min)'"
      )
  
+     # 'schedule_job_at' 5 min ago; should ignore
+     target_time_at = Time.now - (5 * 60) # 5 min ago
+     KIPANGARATIBA.my_scheduler.schedule_job_at(
+       target_time_at,
+       "bash ~/bin/nop_test.sh 'NOP job for a past time'"
+     ) 
+ 
      # 'schedule_job_at' (runs in 120 seconds)
      target_time_at = Time.now + (2 * 60) # 2 minutes
      KIPANGARATIBA.my_scheduler.schedule_job_at(

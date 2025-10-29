@@ -101,12 +101,16 @@ class KipangaScheduler
   # ------------------------------------------------------------
   # schedule_job_at  --  schedules background job to run at specific 'time'
   # time [Time] -- specific time at which to run the job
+  # nothing schedule if past the datetime
   # ------------------------------------------------------------
   def schedule_job_at(time, *args)
-    Environ.log_info("KipangaScheduler: Scheduling job for #{time}: #{args.inspect}")
-    ShellWorker.perform_at(time, *args)
+    if time <= Time.now
+      Environ.log_info("KipangaScheduler: Job for #{time} is in the past. Skipping: #{args.inspect}")
+    else
+      Environ.log_info("KipangaScheduler: Scheduling job for #{time}: #{args.inspect}")
+      ShellWorker.perform_at(time, *args)
+    end
   end
-
   # ------------------------------------------------------------
   # schedule_cron_job -- schedules/updates a recurring background job rule
   # options_hash [Hash] 
