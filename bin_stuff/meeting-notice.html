@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Room Sign</title>
+    <style>
+        /* Base styles from user requirements */
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Garamond, serif;
+            background-color: #111111;
+            color: #FA8072;
+            overflow: hidden; /* Hide scrollbars */
+        }
+
+        /* Main container uses flexbox to create the 3-part layout */
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Viewport height */
+            box-sizing: border-box;
+            padding: 5%;
+        }
+
+        /* --- 1. Top DIV --- */
+        .top-div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0; /* Prevent this div from shrinking */
+        }
+
+        .top-div img {
+            width: 330px;
+            height: 330px;
+            /* NOTE: The __IMAGE_FILEPATH__ placeholder below
+               must be replaced by a script with an absolute file path.
+               e.g., "file:///home/daudi/projectspace/kipangaratiba/public/images/cardinal-fgd.png"
+            */
+        }
+        
+        .top-div h1 {
+            font-size: 4.5vw; /* Scalable font size */
+            margin: 0;
+            /* UPDATED styles based on user request */
+            font-family: 'Ubuntu', sans-serif;
+            color: #CF9FFF;
+            font-weight: bold;
+            
+            /* NEW: Allow h1 to grow and center its text */
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        /* NEW: Spacer element for centering h1 */
+        .top-div .spacer {
+            width: 330px; /* Match the image width */
+            height: 1px; /* Just needs to occupy space */
+            flex-shrink: 0;
+        }
+
+        /* --- 2. Middle DIV --- */
+        .middle-div {
+            flex-grow: 1; /* Takes up the remaining space in the middle */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            text-align: center;
+        }
+
+        .middle-div h1 {
+            font-size: 7vw;
+            margin: 0;
+            font-weight: normal;
+        }
+
+        /* --- 3. Bottom DIV --- */
+        .bottom-div {
+            flex-shrink: 0; /* Prevent this div from shrinking */
+            text-align: center;
+        }
+
+        .bottom-div h1 {
+            /* font-size: 18vw; */ /* Size now applied to #timer span */
+            margin: 0;
+            /* font-weight: bold; */ /* Weight now applied to #timer span */
+
+            /* NEW: Use flexbox for better alignment of timer and "Minutes" text */
+            display: flex;
+            justify-content: center;
+            align-items: baseline; /* Aligns text along their baseline */
+            gap: 0.5em; /* Provides spacing */
+        }
+
+        /* NEW: Style for the timer number */
+        #timer {
+            font-size: 13vw;
+            /* font-weight: bold; */ /* UPDATED: Removed boldface */
+        }
+
+        /* NEW: Style for the "Minutes" text */
+        .bottom-div h1 span:last-child {
+            font-size: 7vw; /* Same as Middle DIV text */
+            font-weight: normal; /* Match Middle DIV weight */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Top-most DIV: Logo and Room Name -->
+        <div class="top-div">
+            <img src="__IMAGE_FILEPATH__" alt="Company Logo"> <!-- UPDATED: Placeholder -->
+            <h1 id="meeting-room">__MEETING_ROOM_NAME__</h1> <!-- UPDATED: Placeholder -->
+            <div class="spacer"></div> <!-- NEW: Spacer for centering -->
+        </div>
+
+        <!-- Middle DIV: "Meeting Starting In" -->
+        <div class="middle-div">
+            <h1>Video Starting In</h1>
+        </div>
+
+        <!-- Bottom-most DIV: Timer -->
+        <div class="bottom-div">
+            <h1>
+                <span id="timer">15</span>
+                &emsp;<span>Minutes</span>
+            </h1>
+        </div>
+
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            let currentMinutes = 15;
+            const timerElement = document.getElementById('timer');
+
+            // Set the initial value on load
+            // .padStart(2, '0') ensures it's always two digits (e.g., "09")
+            timerElement.textContent = String(currentMinutes).padStart(2, '0');
+
+            const countdownInterval = setInterval(() => {
+                // Stop the interval if the count is 2 or less.
+                // This means '02' will be the last number displayed.
+                if (currentMinutes <= 2) {
+                    clearInterval(countdownInterval);
+                    return;
+                }
+
+                currentMinutes--;
+
+                // Update the timer display
+                timerElement.textContent = String(currentMinutes).padStart(2, '0');
+
+            }, 60 * 1000); // 60,000 milliseconds = 1 minute
+        });
+    </script>
+
+</body>
+</html>
+
+
