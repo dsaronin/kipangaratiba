@@ -1,4 +1,4 @@
-#!/bin.bash
+#!/bin/bash
 
 # --- Configuration ---
 DEFAULT_ROOM="SchFrry102VisitSA"
@@ -49,5 +49,6 @@ flatpak run org.chromium.Chromium \
 --disable-translate \
 --user-data-dir=${HOME}/.config/chromium-kiosk-public-jitsi \
 --app="${FULL_URL}" &
+
 
 
