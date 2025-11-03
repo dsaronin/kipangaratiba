@@ -6,6 +6,9 @@
 # require 'pathname'
 # APP_ROOT = Pathname.new(File.expand_path('.', __dir__))
 
+# then ENV['TZ'] *MUST* be before any require statements
+ENV['TZ'] = 'America/Los_Angeles' # system's correct zone
+
 # Load the environment for logging
 require_relative './app/environ'
 

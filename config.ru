@@ -1,4 +1,6 @@
 # config.ru
+# then ENV['TZ'] *MUST* be before any require statements
+ENV['TZ'] = 'America/Los_Angeles' # system's correct zone
 
 require 'sinatra'
 require 'sidekiq/web'
