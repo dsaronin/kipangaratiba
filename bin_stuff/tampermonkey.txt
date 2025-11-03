@@ -1,0 +1,119 @@
+// ==UserScript==
+// @name         Jitsi Auto Join/Hangup (v1.1 - Hash Map)
+// @namespace    http://tampermonkey.net/
+// @version      1.1
+// @description  Auto joins, then auto-hangs up based on a room name-to-duration map.
+// @author       Angalia Developer
+// @match        https://meet.jit.si/*
+// @grant        none
+// @run-at       document-idle
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    console.log('[Angalia Script] v1.1 START');
+
+    // --- CONFIGURATION ---
+    const DEFAULT_DURATION_SECONDS = 3600; // 60 minutes
+    
+    // Hash map of Room Name => Duration in Seconds
+    const DURATION_MAP = {
+        "SchFrry102VisitSA": 4500,  // 75 * 60
+        "EllesGantesGS1976": 7200,  // 120 * 60
+        "ShortSelmaSession5145": 1800   // 30 * 60
+    };
+
+    // --- XPATH SELECTORS ---
+    const xpaths = {
+        join: "//div[@role='button' and contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'join meeting')]",
+        login: "//button[@data-testid='lobby.loginButton']",
+        hangup: "//div[contains(@class, 'toolbox-icon') and contains(@class, 'hangup-button')]"
+    };
+
+    // --- STATE MACHINE FOR POLLING ---
+    let pollInterval = null;
+    let safetyTimeout = null;
+    let pollerState = null; 
+
+    function startPoller(initialState) {
+        if (pollInterval) clearInterval(pollInterval);
+        if (safetyTimeout) clearTimeout(safetyTimeout);
+
+        pollerState = initialState;
+        let targetXPath = '';
+        console.log(`[Angalia Script] Starting poller for: ${pollerState}`);
+
+        if (pollerState === 'POLL_FOR_JOIN') {
+            targetXPath = xpaths.join;
+        } else if (pollerState === 'POLL_FOR_LOGIN') {
+            targetXPath = xpaths.login;
+        } else if (pollerState === 'POLL_FOR_HANGUP') {
+            targetXPath = xpaths.hangup;
+        } else {
+            console.log(`[Angalia Script] Unknown state, stopping.`);
+            return;
+        }
+
+        safetyTimeout = setTimeout(() => {
+            console.log(`[Angalia Script] Poller for ${pollerState} TIMED OUT after 30s.`);
+            clearInterval(pollInterval);
+        }, 30000); 
+
+        pollInterval = setInterval(() => {
+            try {
+                let result = document.evaluate(targetXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+                let button = result.singleNodeValue;
+
+                if (button) {
+                    console.log(`[Angalia Script] Found and clicking: ${pollerState}`);
+                    button.click();
+                    clearInterval(pollInterval);
+                    clearTimeout(safetyTimeout);
+
+                    if (pollerState === 'POLL_FOR_JOIN') {
+                        setTimeout(() => startPoller('POLL_FOR_LOGIN'), 1000);
+                    } else if (pollerState === 'POLL_FOR_LOGIN') {
+                        console.log('[Angalia Script] Join/Login sequence complete.');
+                    } else if (pollerState === 'POLL_FOR_HANGUP') {
+                        console.log('[Angalia Script] Hangup complete.');
+                    }
+                }
+            } catch (e) {
+                console.error('[Angalia Script] Poller error:', e);
+                clearInterval(pollInterval);
+                clearTimeout(safetyTimeout);
+            }
+        }, 500);
+    }
+
+    // --- HANGUP TIMER ---
+    function setupHangupTimer() {
+        let hangupDuration = DEFAULT_DURATION_SECONDS;
+        try {
+            // Get room name from URL path (e.g., /SchFrry102VisitSA)
+            const roomName = window.location.pathname.substring(1);
+
+            if (DURATION_MAP.hasOwnProperty(roomName)) {
+                hangupDuration = DURATION_MAP[roomName];
+                console.log(`[Angalia Script] Found room '${roomName}' in map. Setting duration to ${hangupDuration}s.`);
+            } else {
+                console.log(`[Angalia Script] Room '${roomName}' not in map. Using default ${hangupDuration}s.`);
+            }
+            
+            const durationMs = hangupDuration * 1000;
+            
+            setTimeout(() => {
+                console.log(`[Angalia Script] HANGUP TIMER FIRED after ${hangupDuration}s. Starting hangup poller.`);
+                startPoller('POLL_FOR_HANGUP');
+            }, durationMs);
+
+        } catch (e) {
+            console.error('[Angalia Script] Failed to parse room/duration:', e);
+        }
+    }
+
+    // --- START ---
+    startPoller('POLL_FOR_JOIN');
+    setupHangupTimer();
+
+})();
