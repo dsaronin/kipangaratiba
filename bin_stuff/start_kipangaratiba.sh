@@ -16,9 +16,10 @@ rvm use ruby-3.2.2@kipangaratiba
 export RACK_ENV="production"
 export SINATRA_ENV="production"
 export DEBUG_ENV="false"
+export TZ="America/Los_Angeles"
 
 # Define log file paths
-LOG_DIR="/home/daudi/log"
+LOG_DIR="/home/angalia-hub/log"
 WEB_LOG_FILE="$LOG_DIR/kipangaratiba_thin.log"
 WORKER_LOG_FILE="$LOG_DIR/kipangaratiba_sidekiq.log"
 
