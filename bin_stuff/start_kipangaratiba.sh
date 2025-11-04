@@ -3,6 +3,7 @@
 # Starts the Kipangaratiba web and worker processes.
 # Uses flock on each process to prevent double-launch.
 # Includes a check to wait for Redis to be available.
+# Includes [ScriptPID:$$] tagging for diagnostics.
 
 # Source RVM to enable RVM commands and environment
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
@@ -36,38 +37,38 @@ mkdir -p "$LOG_DIR"
 
 # --- Wait for Redis ---
 # This loop prevents the app from launching before its Redis dependency is ready.
-echo "---" >> "$WEB_LOG_FILE"
-echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] KIPANGA DIAGNOSTIC: Waiting for Redis..." >> "$WEB_LOG_FILE"
+echo "[ScriptPID:$$] ---" >> "$WEB_LOG_FILE"
+echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] [ScriptPID:$$] KIPANGA DIAGNOSTIC: Waiting for Redis..." >> "$WEB_LOG_FILE"
 REDIS_WAIT_MAX=30 # Wait a maximum of 30 * 2 = 60 seconds
 REDIS_WAIT_COUNT=0
 # Loop until `redis-cli ping` returns a "PONG"
 while ! redis-cli ping | grep -q "PONG"; do
     if [ $REDIS_WAIT_COUNT -ge $REDIS_WAIT_MAX ]; then
-        echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] KIPANGA ERROR: Redis not responding after 60 seconds. Aborting." >> "$WEB_LOG_FILE"
+        echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] [ScriptPID:$$] KIPANGA ERROR: Redis not responding after 60 seconds. Aborting." >> "$WEB_LOG_FILE"
         exit 1
     fi
-    echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] KIPANGA INFO: Redis not up, retrying in 2s... (Attempt $((REDIS_WAIT_COUNT+1))/$REDIS_WAIT_MAX)" >> "$WEB_LOG_FILE"
+    echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] [ScriptPID:$$] KIPANGA INFO: Redis not up, retrying in 2s... (Attempt $((REDIS_WAIT_COUNT+1))/$REDIS_WAIT_MAX)" >> "$WEB_LOG_FILE"
     sleep 2
     REDIS_WAIT_COUNT=$((REDIS_WAIT_COUNT+1))
 done
-echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] KIPANGA DIAGNOSTIC: Redis is up! Proceeding with launch." >> "$WEB_LOG_FILE"
+echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] [ScriptPID:$$] KIPANGA DIAGNOSTIC: Redis is up! Proceeding with launch." >> "$WEB_LOG_FILE"
 
 
 # --- Port Status Check BEFORE Start ---
 TIMESTAMP_PRE=$(date +"%Y-%m-%d %H:%M:%S %Z")
-echo "---" >> "$WEB_LOG_FILE"
-echo "[ $TIMESTAMP_PRE ] KIPANGA DIAGNOSTIC: Checking port $KIPANGA_PORT status BEFORE launch." >> "$WEB_LOG_FILE"
-echo "--- netstat -tln | grep $KIPANGA_PORT (Should be empty) ---" >> "$WEB_LOG_FILE"
+echo "[ScriptPID:$$] ---" >> "$WEB_LOG_FILE"
+echo "[ $TIMESTAMP_PRE ] [ScriptPID:$$] KIPANGA DIAGNOSTIC: Checking port $KIPANGA_PORT status BEFORE launch." >> "$WEB_LOG_FILE"
+echo "[ScriptPID:$$] --- netstat -tln | grep $KIPANGA_PORT (Should be empty) ---" >> "$WEB_LOG_FILE"
 netstat -tln | grep $KIPANGA_PORT >> "$WEB_LOG_FILE" 2>&1
-echo "--- lsof -i :$KIPANGA_PORT (Should be empty) ---" >> "$WEB_LOG_FILE"
+echo "[ScriptPID:$$] --- lsof -i :$KIPANGA_PORT (Should be empty) ---" >> "$WEB_LOG_FILE"
 lsof -i :$KIPANGA_PORT >> "$WEB_LOG_FILE" 2>&1
-echo "---" >> "$WEB_LOG_FILE"
+echo "[ScriptPID:$$] ---" >> "$WEB_LOG_FILE"
 
 
 # --- Start Thin Web Server ---
 # nohup wraps flock, which holds the lock and runs the server.
 # The lock is held as long as the 'bundle exec thin' process is running.
-nohup flock -n "$WEB_LOCK_FILE" bundle exec thin -R config.ru -a 0.0.0.0 -p $KIPANGA_PORT start >> "$WEB_LOG_FILE" 2>&1 &
+nohup flock -n "$WEB_LOCK_FILE" bundle exec thin -R config.ru -a 0.0.0.0 -p $KIPANGA_PORT start --no-daemonize >> "$WEB_LOG_FILE" 2>&1 &
 WEB_PID=$!
 
 
@@ -83,13 +84,13 @@ sleep 5
 
 # --- Port Status Check AFTER Start ---
 TIMESTAMP_POST=$(date +"%Y-%m-%d %H:%M:%S %Z")
-echo "---" >> "$WEB_LOG_FILE"
-echo "[ $TIMESTAMP_POST ] KIPANGA DIAGNOSTIC: Checking port $KIPANGA_PORT status AFTER launch." >> "$WEB_LOG_FILE"
-echo "--- netstat -tln | grep $KIPANGA_PORT (Should show LISTEN) ---" >> "$WEB_LOG_FILE"
+echo "[ScriptPID:$$] ---" >> "$WEB_LOG_FILE"
+echo "[ $TIMESTAMP_POST ] [ScriptPID:$$] KIPANGA DIAGNOSTIC: Checking port $KIPANGA_PORT status AFTER launch." >> "$WEB_LOG_FILE"
+echo "[ScriptPID:$$] --- netstat -tln | grep $KIPANGA_PORT (Should show LISTEN) ---" >> "$WEB_LOG_FILE"
 netstat -tln | grep $KIPANGA_PORT >> "$WEB_LOG_FILE" 2>&1
-echo "--- lsof -i :$KIPANGA_PORT (Should show ruby/thin process) ---" >> "$WEB_LOG_FILE"
+echo "[ScriptPID:$$] --- lsof -i :$KIPANGA_PORT (Should show ruby/thin process) ---" >> "$WEB_LOG_FILE"
 lsof -i :$KIPANGA_PORT >> "$WEB_LOG_FILE" 2>&1
-echo "---" >> "$WEB_LOG_FILE"
+echo "[ScriptPID:$$] ---" >> "$WEB_LOG_FILE"
 
 
 # Final console output
