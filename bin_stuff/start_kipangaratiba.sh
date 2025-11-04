@@ -2,6 +2,7 @@
 #
 # Starts the Kipangaratiba web and worker processes.
 # Uses flock on each process to prevent double-launch.
+# Includes a check to wait for Redis to be available.
 
 # Source RVM to enable RVM commands and environment
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
@@ -31,6 +32,25 @@ WORKER_LOCK_FILE="$LOG_DIR/kipangaratiba.worker.lock"
 
 # Ensure the log directory exists
 mkdir -p "$LOG_DIR"
+
+
+# --- Wait for Redis ---
+# This loop prevents the app from launching before its Redis dependency is ready.
+echo "---" >> "$WEB_LOG_FILE"
+echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] KIPANGA DIAGNOSTIC: Waiting for Redis..." >> "$WEB_LOG_FILE"
+REDIS_WAIT_MAX=30 # Wait a maximum of 30 * 2 = 60 seconds
+REDIS_WAIT_COUNT=0
+# Loop until `redis-cli ping` returns a "PONG"
+while ! redis-cli ping | grep -q "PONG"; do
+    if [ $REDIS_WAIT_COUNT -ge $REDIS_WAIT_MAX ]; then
+        echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] KIPANGA ERROR: Redis not responding after 60 seconds. Aborting." >> "$WEB_LOG_FILE"
+        exit 1
+    fi
+    echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] KIPANGA INFO: Redis not up, retrying in 2s... (Attempt $((REDIS_WAIT_COUNT+1))/$REDIS_WAIT_MAX)" >> "$WEB_LOG_FILE"
+    sleep 2
+    REDIS_WAIT_COUNT=$((REDIS_WAIT_COUNT+1))
+done
+echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] KIPANGA DIAGNOSTIC: Redis is up! Proceeding with launch." >> "$WEB_LOG_FILE"
 
 
 # --- Port Status Check BEFORE Start ---
@@ -74,6 +94,7 @@ echo "---" >> "$WEB_LOG_FILE"
 
 # Final console output
 echo "Kipangaratiba started."
-echo "  Web Server PID:    $WEB_PID (Log: $WEB_LOG_FILE)"
+echo "  Web Server PID:     $WEB_PID (Log: $WEB_LOG_FILE)"
 echo "  Worker Server PID: $WORKER_PID (Log: $WORKER_LOG_FILE)"
+
 
