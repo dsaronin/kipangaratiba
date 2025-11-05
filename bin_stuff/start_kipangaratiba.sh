@@ -25,10 +25,12 @@ export TZ="America/Los_Angeles" # Set time zone for consistent logging
 LOG_DIR="/home/angalia-hub/log"
 WEB_LOG_FILE="$LOG_DIR/kipangaratiba_thin.log"
 WORKER_LOG_FILE="$LOG_DIR/kipangaratiba_sidekiq.log"
+THIN_DAEMON_LOG="$LOG_DIR/kipangaratiba_daemon.log" # Separate log for thin daemon
 KIPANGA_PORT="8090" # Port used by the Thin web server
 
 # Define lock file paths
 WEB_LOCK_FILE="$LOG_DIR/kipangaratiba.web.lock"
+THIN_PID_FILE="$LOG_DIR/kipangaratiba_thin.pid"
 WORKER_LOCK_FILE="$LOG_DIR/kipangaratiba.worker.lock"
 
 # Ensure the log directory exists
@@ -53,6 +55,20 @@ while ! redis-cli ping | grep -q "PONG"; do
 done
 echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] [ScriptPID:$$] KIPANGA DIAGNOSTIC: Redis is up! Proceeding with launch." >> "$WEB_LOG_FILE"
 
+# --- PID Lock Check (Web) ---
+# This check prevents a double-launch of the thin server.
+if [ -f "$THIN_PID_FILE" ]; then
+    OLD_PID=$(cat "$THIN_PID_FILE")
+    # Check if the process ID from the file is still running
+    if ps -p "$OLD_PID" > /dev/null; then
+        echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] [ScriptPID:$$] KIPANGA ERROR: Thin server is already running with PID $OLD_PID (from $THIN_PID_FILE). Aborting." >> "$WEB_LOG_FILE"
+        exit 1 # Abort script
+    else
+        # The process is not running, so the PID file is stale (from a crash/reboot)
+        echo "[ $(date +"%Y-%m-%d %H:%M:%S %Z") ] [ScriptPID:$$] KIPANGA WARN: Found stale PID file for $OLD_PID. Removing $THIN_PID_FILE." >> "$WEB_LOG_FILE"
+        rm "$THIN_PID_FILE"
+    fi
+fi
 
 # --- Port Status Check BEFORE Start ---
 TIMESTAMP_PRE=$(date +"%Y-%m-%d %H:%M:%S %Z")
@@ -68,7 +84,8 @@ echo "[ScriptPID:$$] ---" >> "$WEB_LOG_FILE"
 # --- Start Thin Web Server ---
 # nohup wraps flock, which holds the lock and runs the server.
 # The lock is held as long as the 'bundle exec thin' process is running.
-nohup flock -n "$WEB_LOCK_FILE" bundle exec thin -R config.ru -a 0.0.0.0 -p $KIPANGA_PORT start >> "$WEB_LOG_FILE" 2>&1 &
+# nohup flock -n "$WEB_LOCK_FILE" bundle exec thin -R config.ru -a 0.0.0.0 -p $KIPANGA_PORT >> "$WEB_LOG_FILE" 2>&1 &
+nohup bundle exec thin -R config.ru -a 0.0.0.0 -p $KIPANGA_PORT -l "$THIN_DAEMON_LOG" -P "$THIN_PID_FILE" -D -d start >> "$WEB_LOG_FILE" 2>&1 &
 WEB_PID=$!
 
 
@@ -95,7 +112,6 @@ echo "[ScriptPID:$$] ---" >> "$WEB_LOG_FILE"
 
 # Final console output
 echo "Kipangaratiba started."
-echo "  Web Server PID:     $WEB_PID (Log: $WEB_LOG_FILE)"
+echo "  Web Server PID:     $WEB_PID (Log: $WEB_LOG_FILE, PID File: $THIN_PID_FILE)"
+echo "  Daemon Log:     (Log: $THIN_DAEMON_LOG)"
 echo "  Worker Server PID: $WORKER_PID (Log: $WORKER_LOG_FILE)"
-
-

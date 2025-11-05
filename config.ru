@@ -63,10 +63,13 @@ configure do
   # This allows the configure block to return immediately,
   # so thin can bind to the port and close the race window.
   Thread.new do
+    Kipangaratiba::Environ.log_info "Config: New thread for initialization in background..."
     KIPANGARATIBA.setup_work()    # initialization of everything; takes a sec or two
-    Kipangaratiba::Environ.log_warn  "Config: #{KIPANGARATIBA.do_version} ... initialization completed."
+    Kipangaratiba::Environ.log_warn  "Config: #{KIPANGARATIBA.do_version} ...initialization completed."
   end
 
+  # This log line will execute immediately after the thread is dispatched.
+  Kipangaratiba::Environ.log_info "Config: Thread dispatched. configure block foreground ending."
 end  # configure
 
 # handle special sidekiq GUI web I/F 
