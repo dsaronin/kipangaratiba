@@ -68,7 +68,7 @@ echo "[ScriptPID:$$] ---" >> "$WEB_LOG_FILE"
 # --- Start Thin Web Server ---
 # nohup wraps flock, which holds the lock and runs the server.
 # The lock is held as long as the 'bundle exec thin' process is running.
-nohup flock -n "$WEB_LOCK_FILE" bundle exec thin -R config.ru -a 0.0.0.0 -p $KIPANGA_PORT start --no-daemonize >> "$WEB_LOG_FILE" 2>&1 &
+nohup flock -n "$WEB_LOCK_FILE" bundle exec thin -R config.ru -a 0.0.0.0 -p $KIPANGA_PORT start >> "$WEB_LOG_FILE" 2>&1 &
 WEB_PID=$!
 
 
