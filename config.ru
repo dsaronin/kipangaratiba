@@ -48,8 +48,7 @@ configure do
 # system environment confirmed; start application
 # --------------------------------------------------
   KIPANGARATIBA = Kipangaratiba::KipangaratibaWork.new 
-  KIPANGARATIBA.setup_work()    # initialization of everything
-
+  
   PUBLIC_DIR = File.join(File.dirname(__FILE__), 'public')
 
   set :public_folder, PUBLIC_DIR
@@ -57,14 +56,18 @@ configure do
   set :haml, { escape_html: false }
   set :session_secret, ENV['KIPANGARATIBA_TOKEN'] 
 
-  Kipangaratiba::Environ.log_info  "Config: PUBLIC_DIR: #{PUBLIC_DIR}"
-  Kipangaratiba::Environ.log_warn  "Config: #{KIPANGARATIBA.do_version} ... initialization completed."
-  
   # outputs name, version number
+  Kipangaratiba::Environ.log_info  "Starting Config: PUBLIC_DIR: #{PUBLIC_DIR}"
+  
+  # Defer heavy initialization to a new thread.
+  # This allows the configure block to return immediately,
+  # so thin can bind to the port and close the race window.
+  Thread.new do
+    KIPANGARATIBA.setup_work()    # initialization of everything; takes a sec or two
+    Kipangaratiba::Environ.log_warn  "Config: #{KIPANGARATIBA.do_version} ... initialization completed."
+  end
 
 end  # configure
-
-# run Kipangaratiba::KipangaratibaApp
 
 # handle special sidekiq GUI web I/F 
 map "/sidekiq" do
