@@ -30,6 +30,23 @@ PUMA_PID_FILE="/home/angalia-hub/log/kipangaratiba_puma.pid" # Must match config
 # Ensure the log directory exists
 mkdir -p "$LOG_DIR"
 
+# --- Log Rotation ---
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+# Function to rotate a single log file
+rotate_log_file() {
+    local LOG_FILE="$1"
+    if [ -f "$LOG_FILE" ]; then
+        local LOG_BASENAME="${LOG_FILE%.*}"
+        local LOG_EXTENSION=".${LOG_FILE##*.}"
+        local ARCHIVE_NAME="${LOG_BASENAME}-${TIMESTAMP}${LOG_EXTENSION}"
+        mv "$LOG_FILE" "$ARCHIVE_NAME"
+    fi
+}
+
+# Rotate both log files
+rotate_log_file "$PUMA_LOG_FILE"
+rotate_log_file "$WORKER_LOG_FILE"
 
 # --- Wait for Redis ---
 # This loop prevents the app from launching before its Redis dependency is ready.
@@ -77,8 +94,7 @@ echo "[ScriptPID:$$] ---" >> "$PUMA_LOG_FILE"
 
 # --- Start Puma Web Server ---
 # The -C flag points to the config file and handles its own PID file and logging.
-nohup bundle exec puma -C config/puma.rb &
-
+nohup bundle exec puma -C config/puma.rb >> "$PUMA_LOG_FILE" 2>&1 &
 
 # --- Start Sidekiq Worker Process ---
 # (flock removed as requested)
