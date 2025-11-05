@@ -4,7 +4,7 @@ module Kipangaratiba              # Define the top-level module  Kipangaratiba::
 # +++++++++++++++++++++++++++++++++++++++++++++++++
 
 module Kipangaratiba
-  VERSION = "1.6"
+  VERSION = "1.7"
 end
 
 end  # module Kipangaratiba

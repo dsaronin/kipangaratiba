@@ -7,9 +7,6 @@ environment ENV.fetch("RACK_ENV") { "production" }
 # Specify the PID file
 pidfile '/home/angalia-hub/log/kipangaratiba_puma.pid'
 
-# Daemonize the process (run in background)
-daemonize true
-
 # Redirect stdout/stderr to log files
 # We combine stdout and stderr into one log file for simplicity,
 # matching the behavior of your original script.

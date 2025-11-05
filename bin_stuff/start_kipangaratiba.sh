@@ -76,8 +76,7 @@ echo "[ScriptPID:$$] ---" >> "$PUMA_LOG_FILE"
 
 
 # --- Start Puma Web Server ---
-# The -C flag points to the config file, which daemonizes the server
-# and handles its own PID file and logging.
+# The -C flag points to the config file and handles its own PID file and logging.
 nohup bundle exec puma -C config/puma.rb &
 
 
