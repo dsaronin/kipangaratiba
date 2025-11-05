@@ -6,7 +6,7 @@ source "https://rubygems.org"
 gem 'sinatra'
 gem 'rack'
 gem 'rackup'
-gem 'thin'
+gem 'puma'
 gem 'haml'
 gem 'sinatra-formhelpers-ng'
 gem 'rack-flash3'
