@@ -95,6 +95,6 @@ fi
 # echo "Cleanup complete."
 
 # --- 9. Exit ---
-echo "launch_sign.sh script
+echo "launch_sign.sh script"
 
 
