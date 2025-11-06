@@ -9,8 +9,8 @@
 # posted start: 13:00, launch 12:44, end 14:15
 - meeting: 'SchFrry102VisitSA'
   week_day: 'sunday'
-  start_time: '12:44'
-  stop_time: '14:15'
+  start_time: '13:14'
+  stop_time: '14:45'
   repeats: 'weekly'
 
 # posted start: 13:30, launch 13:14, end 14:45
