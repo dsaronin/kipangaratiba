@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Jitsi Auto Join/Hangup (v1.3 - robust polling)
+// @name         Jitsi Auto Join/Hangup (v1.4 - robust polling)
 // @namespace    http://tampermonkey.net/
-// @version      1.3
+// @version      1.4
 // @description  Auto joins, then auto-hangs up based on a room name-to-duration map.
 // @author       Angalia Developer
 // @match        https://meet.jit.si/*
@@ -11,7 +11,7 @@
 
 (function() {
     'use strict';
-    console.log('[Angalia Script] v1.3 START');
+    console.log('[Angalia Script] v1.4 START');
 
     // --- CONFIGURATION ---
     const DEFAULT_DURATION_SECONDS = 3600; // 60 minutes
@@ -26,7 +26,8 @@
     // --- XPATH SELECTORS ---
     const xpaths = {
         join: "//div[@role='button' and contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'join meeting')]",
-        login: "//button[@data-testid='lobby.loginButton']",
+        // login: "//button[@data-testid='lobby.loginButton']",
+        login: "//button[@data-testid='lobby.loginButton' or contains(., 'Log-in')]",
         hangup: "//div[contains(@class, 'toolbox-icon') and contains(@class, 'hangup-button')]"
     };
 

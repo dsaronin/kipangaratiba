@@ -21,7 +21,7 @@ fi
 # and wait for launch_sign.sh to complete (13.5 mins)
 # before proceeding to the Jitsi launch.
 echo "Starting 13.5 minute countdown sign for room: $ROOM_NAME on path $PROJECTPATH"
-~/bin/launch_sign.sh -r "$ROOM_NAME" -p "$PROJECTPATH"
+~/bin/launch_sign.sh -r "$ROOM_NAME" -p "$PROJECTPATH" 
 echo "Countdown sign finished. Launching Jitsi..."
 # --------------------------------------------------
 
@@ -43,12 +43,10 @@ FULL_URL="${BASE_URL}#${JOINED_PARAMS:1}"
 flatpak run org.chromium.Chromium \
 --kiosk \
 --start-fullscreen \
+--disable-infobars \
 --no-first-run \
 --no-default-browser-check \
---disable-infobars \
 --disable-translate \
 --user-data-dir=${HOME}/.config/chromium-kiosk-public-jitsi \
---app="${FULL_URL}" &
-
-
+"${FULL_URL}" &
 
