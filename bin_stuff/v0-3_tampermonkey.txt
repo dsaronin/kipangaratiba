@@ -1,0 +1,77 @@
+// ==UserScript==
+// @name         Jitsi Auto Join (Two-Stage)
+// @namespace    http://tampermonkey.net/
+// @version      0.3
+// @description  Find and click 'Join meeting' and then 'Log in' on Jitsi
+// @author       Angalia Developer
+// @match        https://meet.jit.si/*
+// @grant        none
+// @run-at       document-idle
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    let state = 'POLL_FOR_JOIN'; // 'POLL_FOR_JOIN' or 'POLL_FOR_LOGIN'
+    let pollInterval = null;
+    let safetyTimeout = null;
+
+    const xpaths = {
+        join: "//div[@role='button' and contains(., 'Join meeting')]",
+        login: "//div[@role='button' and contains(., 'Log in')]"
+    };
+
+    function startPolling() {
+        // Clear any existing timers
+        if (pollInterval) clearInterval(pollInterval);
+        if (safetyTimeout) clearTimeout(safetyTimeout);
+
+        let targetXPath = '';
+        if (state === 'POLL_FOR_JOIN') {
+            targetXPath = xpaths.join;
+        } else if (state === 'POLL_FOR_LOGIN') {
+            targetXPath = xpaths.login;
+        } else {
+            return; // Unknown state, stop
+        }
+
+        // Set a 30-second safety timeout for this state
+        safetyTimeout = setTimeout(() => {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }, 30000);
+
+        // Start the poller
+        pollInterval = setInterval(() => {
+            try {
+                let result = document.evaluate(targetXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+                let button = result.singleNodeValue;
+
+                if (button) {
+                    // Button found. Click it.
+                    button.click();
+                    clearInterval(pollInterval); // Stop this poller
+                    clearTimeout(safetyTimeout); // Clear this safety timeout
+
+                    // Transition to the next state
+                    if (state === 'POLL_FOR_JOIN') {
+                        state = 'POLL_FOR_LOGIN';
+                        // Give page 1 sec to update before polling for next button
+                        setTimeout(startPolling, 1000);
+                    } else if (state === 'POLL_FOR_LOGIN') {
+                        state = 'DONE'; // We are finished
+                    }
+                }
+            } catch (e) {
+                // An error occurred, stop everything
+                clearInterval(pollInterval);
+                clearTimeout(safetyTimeout);
+            }
+        }, 500); // Poll every 500ms
+    }
+
+    // --- Start the machine ---
+    startPolling();
+
+})();
+

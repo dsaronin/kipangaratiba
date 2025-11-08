@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Jitsi Auto Join/Hangup (v1.3 - robust polling)
+// @name         Jitsi Auto Join/Hangup (v1.1 - Hash Map)
 // @namespace    http://tampermonkey.net/
-// @version      1.3
+// @version      1.1
 // @description  Auto joins, then auto-hangs up based on a room name-to-duration map.
 // @author       Angalia Developer
 // @match        https://meet.jit.si/*
@@ -11,7 +11,7 @@
 
 (function() {
     'use strict';
-    console.log('[Angalia Script] v1.3 START');
+    console.log('[Angalia Script] v1.1 START');
 
     // --- CONFIGURATION ---
     const DEFAULT_DURATION_SECONDS = 3600; // 60 minutes
@@ -35,7 +35,7 @@
     let safetyTimeout = null;
     let pollerState = null; 
 
-function startPoller(initialState) {
+    function startPoller(initialState) {
         if (pollInterval) clearInterval(pollInterval);
         if (safetyTimeout) clearTimeout(safetyTimeout);
 
@@ -43,69 +43,45 @@ function startPoller(initialState) {
         let targetXPath = '';
         console.log(`[Angalia Script] Starting poller for: ${pollerState}`);
 
-        // --- Configure the target for simple states ---
         if (pollerState === 'POLL_FOR_JOIN') {
             targetXPath = xpaths.join;
+        } else if (pollerState === 'POLL_FOR_LOGIN') {
+            targetXPath = xpaths.login;
         } else if (pollerState === 'POLL_FOR_HANGUP') {
             targetXPath = xpaths.hangup;
-        } else if (pollerState !== 'POLL_FOR_POST_JOIN') {
+        } else {
             console.log(`[Angalia Script] Unknown state, stopping.`);
             return;
         }
 
-        // --- Safety Timeout ---
         safetyTimeout = setTimeout(() => {
             console.log(`[Angalia Script] Poller for ${pollerState} TIMED OUT after 30s.`);
             clearInterval(pollInterval);
-        }, 600000);
+        }, 30000); 
 
-        // --- Polling Interval ---
         pollInterval = setInterval(() => {
             try {
-                // --- SPECIAL LOGIC FOR POST-JOIN ---
-                // This state waits for EITHER the lobby OR the meeting to load.
-                if (pollerState === 'POLL_FOR_POST_JOIN') {
-                    let loginBtn = document.evaluate(xpaths.login, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                    let hangupBtn = document.evaluate(xpaths.hangup, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                let result = document.evaluate(targetXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+                let button = result.singleNodeValue;
 
-                    if (loginBtn) {
-                        console.log(`[Angalia Script] Found and clicking: POLL_FOR_LOGIN (lobby)`);
-                        loginBtn.click();
-                        clearInterval(pollInterval);
-                        clearTimeout(safetyTimeout);
+                if (button) {
+                    console.log(`[Angalia Script] Found and clicking: ${pollerState}`);
+                    button.click();
+                    clearInterval(pollInterval);
+                    clearTimeout(safetyTimeout);
+
+                    if (pollerState === 'POLL_FOR_JOIN') {
+                        setTimeout(() => startPoller('POLL_FOR_LOGIN'), 1000);
+                    } else if (pollerState === 'POLL_FOR_LOGIN') {
                         console.log('[Angalia Script] Join/Login sequence complete.');
-                  } else if (hangupBtn) {
-                        console.log(`[Angalia Script] Successfully joined meeting (hangup button found).`);
-                        clearInterval(pollInterval);
-                        clearTimeout(safetyTimeout);
-                        console.log('[Angalia Script] Join sequence complete (no lobby).');
-                    }
-                    // If neither is found, the interval continues.
-
-                // --- STANDARD LOGIC for other states ---
-                } else {
-                    let result = document.evaluate(targetXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-                    let button = result.singleNodeValue;
-
-                    if (button) {
-                        console.log(`[Angalia Script] Found and clicking: ${pollerState}`);
-                        button.click();
-                        clearInterval(pollInterval);
-                        clearTimeout(safetyTimeout);
-
-                        if (pollerState === 'POLL_FOR_JOIN') {
-                            console.log('[Angalia Script] Join clicked. Now polling for Post-Join (Lobby or Hangup).');
-                            // NO TIMEOUT. Immediately start the next poller.
-                            startPoller('POLL_FOR_POST_JOIN');
-                        } else if (pollerState === 'POLL_FOR_HANGUP') {
-                            console.log('[Angalia Script] Hangup complete.');
-                        }
+                    } else if (pollerState === 'POLL_FOR_HANGUP') {
+                        console.log('[Angalia Script] Hangup complete.');
                     }
                 }
             } catch (e) {
                 console.error('[Angalia Script] Poller error:', e);
                 clearInterval(pollInterval);
-              clearTimeout(safetyTimeout);
+                clearTimeout(safetyTimeout);
             }
         }, 500);
     }
