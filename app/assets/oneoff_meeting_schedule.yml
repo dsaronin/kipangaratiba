@@ -7,34 +7,34 @@
 - meeting: 'EllesGantesGS1976'
   meeting_date: '2025-11-07'
   start_time: '11:14'
-  stop_time: '12:40'
+  stop_time: '13:00'
 
 - meeting: 'EllesGantesGS1976'
   meeting_date: '2025-12-05'
   start_time: '11:14'
-  stop_time: '12:40'
+  stop_time: '13:00'
 
 - meeting: 'EllesGantesGS1976'
-  meeting_date: '2026-01-09'
+  meeting_date: '2026-01-02'
   start_time: '11:14'
-  stop_time: '12:40'
+  stop_time: '13:00'
 
 #
 #  QUILTING CLUBS -- 2nd Fridays
 #
 - meeting: 'EllesGantesGS1976'
   meeting_date: '2025-11-14'
-  start_time: '9:44'
-  stop_time: '11:10'
+  start_time: '10:00'
+  stop_time: '11:55'
 
 - meeting: 'EllesGantesGS1976'
   meeting_date: '2025-12-12'
-  start_time: '9:44'
-  stop_time: '11:10'
+  start_time: '10:00'
+  stop_time: '11:55'
 
 
 - meeting: 'EllesGantesGS1976'
-  meeting_date: '2026-01-16'
-  start_time: '9:44'
-  stop_time: '11:10'
+  meeting_date: '2026-01-09'
+  start_time: '10:00'
+  stop_time: '11:55'
 

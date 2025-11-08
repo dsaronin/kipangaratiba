@@ -19,7 +19,7 @@
     // Hash map of Room Name => Duration in Seconds
     const DURATION_MAP = {
         "SchFrry102VisitSA": 4500,  // 75 * 60
-        "EllesGantesGS1976": 7200,  // 120 * 60
+        "EllesGantesGS1976": 5400,  // 90 * 60
         "ShortSelmaSession5145": 1800   // 30 * 60
     };
 
