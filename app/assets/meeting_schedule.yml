@@ -41,16 +41,16 @@
   stop_time: '14:15'
   repeats: 'weekly'
 
-# posted start: 14:30, launch 14:14, end 15:45
+# posted start: 14:30, launch 15:14, end 16:45
 - meeting: 'SchFrry102VisitSA'
   week_day: 'friday'
   start_time: '15:14'
   stop_time: '16:45'
   repeats: 'weekly'
 
-# posted start: 11:30, launch 11:14, end 12:45
+# posted start: 14:30, launch 15:14, end 16:45
 - meeting: 'SchFrry102VisitSA'
   week_day: 'saturday'
-  start_time: '12:44'
-  stop_time: '14:15'
+  start_time: '15:14'
+  stop_time: '16:45'
   repeats: 'weekly'

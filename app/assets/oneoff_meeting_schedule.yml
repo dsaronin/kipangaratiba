@@ -5,17 +5,17 @@
 #  BOOK CLUBS -- 1ST Fridays
 #
 - meeting: 'EllesGantesGS1976'
-  meeting_date: '2025-11-07'
+  meeting_date: '2026-02-06'
   start_time: '11:14'
   stop_time: '13:00'
 
 - meeting: 'EllesGantesGS1976'
-  meeting_date: '2025-12-05'
+  meeting_date: '2026-03-06'
   start_time: '11:14'
   stop_time: '13:00'
 
 - meeting: 'EllesGantesGS1976'
-  meeting_date: '2026-01-02'
+  meeting_date: '2026-04-03'
   start_time: '11:14'
   stop_time: '13:00'
 
@@ -23,18 +23,31 @@
 #  QUILTING CLUBS -- 2nd Fridays
 #
 - meeting: 'EllesGantesGS1976'
-  meeting_date: '2025-11-14'
+  meeting_date: '2026-02-13'
   start_time: '10:00'
   stop_time: '11:55'
 
 - meeting: 'EllesGantesGS1976'
-  meeting_date: '2025-12-12'
+  meeting_date: '2026-03-13'
   start_time: '10:00'
   stop_time: '11:55'
 
 
 - meeting: 'EllesGantesGS1976'
-  meeting_date: '2026-01-09'
+  meeting_date: '2026-04-10'
   start_time: '10:00'
   stop_time: '11:55'
+
+#
+#  MONTHLY MEETINGS -- 3rd Saturdays
+#
+- meeting: 'EllesGantesGS1976'
+  meeting_date: '2026-01-17'
+  start_time: '13:00'
+  stop_time: '15:15'
+
+- meeting: 'EllesGantesGS1976'
+  meeting_date: '2026-02-14'
+  start_time: '13:00'
+  stop_time: '15:15'
 
