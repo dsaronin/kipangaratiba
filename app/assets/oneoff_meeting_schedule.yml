@@ -7,17 +7,27 @@
 - meeting: 'EllesGantesGS1976'
   meeting_date: '2026-02-06'
   start_time: '11:14'
-  stop_time: '13:00'
+  stop_time: '13:10'
 
 - meeting: 'EllesGantesGS1976'
   meeting_date: '2026-03-06'
   start_time: '11:14'
-  stop_time: '13:00'
+  stop_time: '13:10'
 
 - meeting: 'EllesGantesGS1976'
   meeting_date: '2026-04-03'
   start_time: '11:14'
-  stop_time: '13:00'
+  stop_time: '13:10'
+
+- meeting: 'EllesGantesGS1976'
+  meeting_date: '2026-05-01'
+  start_time: '11:14'
+  stop_time: '13:10'
+
+- meeting: 'EllesGantesGS1976'
+  meeting_date: '2026-06-05'
+  start_time: '11:14'
+  stop_time: '13:10'
 
 #
 #  QUILTING CLUBS -- 2nd Fridays
@@ -25,27 +35,27 @@
 - meeting: 'EllesGantesGS1976'
   meeting_date: '2026-02-13'
   start_time: '10:00'
-  stop_time: '11:55'
+  stop_time: '12:10'
 
 - meeting: 'EllesGantesGS1976'
   meeting_date: '2026-03-13'
   start_time: '10:00'
-  stop_time: '11:55'
+  stop_time: '12:10'
 
 
 - meeting: 'EllesGantesGS1976'
   meeting_date: '2026-04-10'
   start_time: '10:00'
-  stop_time: '11:55'
+  stop_time: '12:10'
+
+- meeting: 'EllesGantesGS1976'
+  meeting_date: '2026-05-08'
+  start_time: '10:00'
+  stop_time: '12:10'
 
 #
 #  MONTHLY MEETINGS -- 3rd Saturdays
 #
-- meeting: 'EllesGantesGS1976'
-  meeting_date: '2026-01-17'
-  start_time: '13:00'
-  stop_time: '15:10'
-
 - meeting: 'EllesGantesGS1976'
   meeting_date: '2026-02-14'
   start_time: '13:00'
