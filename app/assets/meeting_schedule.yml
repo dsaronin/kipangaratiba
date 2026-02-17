@@ -23,8 +23,8 @@
 # posted start: 13:00, launch 12:44, end 14:15
 - meeting: 'SchFrry102VisitSA'
   week_day: 'tuesday'
-  start_time: '12:44'
-  stop_time: '14:15'
+  start_time: '15:14'
+  stop_time: '16:45'
   repeats: 'weekly'
 
 # posted start: 11:30, launch 11:14, end 12:45
@@ -37,8 +37,8 @@
 # posted start: 13:00, launch 12:44, end 14:15
 - meeting: 'SchFrry102VisitSA'
   week_day: 'thursday'
-  start_time: '12:44'
-  stop_time: '14:15'
+  start_time: '15:14'
+  stop_time: '16:45'
   repeats: 'weekly'
 
 # posted start: 14:30, launch 15:14, end 16:45
