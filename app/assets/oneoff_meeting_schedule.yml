@@ -24,10 +24,10 @@
   start_time: '11:14'
   stop_time: '13:10'
 
-- meeting: 'EllesGantesGS1976'
-  meeting_date: '2026-06-05'
-  start_time: '11:14'
-  stop_time: '13:10'
+    # - meeting: 'EllesGantesGS1976'
+    # meeting_date: '2026-06-05'
+    # start_time: '11:14'
+    # stop_time: '13:10'
 
 #
 #  QUILTING CLUBS -- 2nd Fridays
