@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Jitsi Auto Join/Hangup (v1.5 - robust polling)
+// @name         Jitsi Auto Join/Hangup (v1.4 - robust polling)
 // @namespace    http://tampermonkey.net/
-// @version      1.6.2
-// @description  Auto joins; auto-hangsup; based on room_name-to-duration.
+// @version      1.4
+// @description  Auto joins, then auto-hangs up based on a room name-to-duration map.
 // @author       Angalia Developer
 // @match        https://meet.jit.si/*
 // @grant        none
@@ -11,25 +11,16 @@
 
 (function() {
     'use strict';
-    
-    let scriptVersion = 'UNKNOWN';
-    if (typeof GM_info !== 'undefined' && GM_info.script) {
-        scriptVersion = GM_info.script.version;
-    } else {
-        // Parse the version directly from the script's header metadata block dynamically
-        const match = Function.prototype.toString.call(this).match(/@version\s+([^\s\r\n]+)/);
-        if (match) scriptVersion = match[1];
-    }
-    console.log(`[Angalia Script] v${scriptVersion} START`);
+    console.log('[Angalia Script] v1.4 START');
 
     // --- CONFIGURATION ---
     const DEFAULT_DURATION_SECONDS = 3600; // 60 minutes
-
-    // Hash map of Room Name (MUST BE LOWERCASE) => Duration in Seconds
+    
+    // Hash map of Room Name => Duration in Seconds
     const DURATION_MAP = {
-        "schfrry102visitsa": 4500,  // 75 * 60
-        "ellesgantesgs1976": 7200,  // 120 * 60
-        "shortselmasession5145": 1800   // 30 * 60
+        "SchFrry102VisitSA": 4500,  // 75 * 60
+        "EllesGantesGS1976": 5400,  // 90 * 60
+        "ShortSelmaSession5145": 1800   // 30 * 60
     };
 
     // --- XPATH SELECTORS ---
@@ -43,30 +34,9 @@
     // --- STATE MACHINE FOR POLLING ---
     let pollInterval = null;
     let safetyTimeout = null;
-    let pollerState = null;
+    let pollerState = null; 
 
-    // --- TELEMETRY HELPERS ---
-    function getElementTelemetry(node, selectorName) {
-        if (!node) return `${selectorName}: NOT_IN_DOM`;
-        
-        try {
-            const style = window.getComputedStyle(node);
-            const isVisible = !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length) && 
-                              style.display !== 'none' && 
-                              style.visibility !== 'hidden' && 
-                              style.opacity !== '0';
-            
-            // Extract identifier strings to trace exactly what changed
-            const attrs = {
-                visible: isVisible ? 'VISIBLE' : 'HIDDEN'
-            };
-            return `${selectorName}:${attrs.visible}`;
-        } catch (e) {
-            return `${selectorName}: METRIC_FAILED (${e.message})`;
-        }
-    }
-
-  function startPoller(initialState) {
+function startPoller(initialState) {
         if (pollInterval) clearInterval(pollInterval);
         if (safetyTimeout) clearTimeout(safetyTimeout);
 
@@ -93,50 +63,26 @@
         // --- Polling Interval ---
         pollInterval = setInterval(() => {
             try {
-
                 // --- SPECIAL LOGIC FOR POST-JOIN ---
                 // This state waits for EITHER the lobby OR the meeting to load.
                 if (pollerState === 'POLL_FOR_POST_JOIN') {
                     let loginBtn = document.evaluate(xpaths.login, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
                     let hangupBtn = document.evaluate(xpaths.hangup, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                    
-                    // Look for the container wrapper that indicates the staging area/lobby is obscuring the interface
-                    let isScreenBlocked = !!document.querySelector('.premeeting-screen');
-
-                    // Continuous Trace: Log structural attributes on every 500ms pass
-                    console.log(`[Angalia Trace] ${getElementTelemetry(loginBtn, 'Login')} | ${getElementTelemetry(hangupBtn, 'Hangup')} | LobbyScreenOverlay:${isScreenBlocked ? 'ACTIVE' : 'ABSENT'}`);
 
                     if (loginBtn) {
-                        console.log(`[Angalia Script] Security Gate Active: Found POLL_FOR_LOGIN (lobby). Extracting React handler...`);
-                        
-                        try {
-                            const reactPropsKey = Object.keys(loginBtn).find(key => 
-                                key.startsWith('__reactProps') || key.startsWith('__reactEventHandlers')
-                            );
-
-                            if (reactPropsKey && loginBtn[reactPropsKey] && typeof loginBtn[reactPropsKey].onClick === 'function') {
-                                console.log('[Angalia Script] Bypassing popup sandbox. Executing native React onClick handler directly.');
-                                loginBtn[reactPropsKey].onClick({ preventDefault: () => {}, stopPropagation: () => {} });
-                            } else {
-                                console.log('[Angalia Script] React internal properties missing, utilizing fallback standard DOM click.');
-                                loginBtn.click();
-                            }
-                        } catch (reactError) {
-                            console.error('[Angalia Script] Exception during React execution:', reactError);
-                            loginBtn.click(); // Fallback execution
-                        }
-
+                        console.log(`[Angalia Script] Found and clicking: POLL_FOR_LOGIN (lobby)`);
+                        loginBtn.click();
                         clearInterval(pollInterval);
                         clearTimeout(safetyTimeout);
                         console.log('[Angalia Script] Join/Login sequence complete.');
-                    } else if (hangupBtn && !isScreenBlocked) {
-                        // Only verify successful call entry if the hangup button is accessible AND the blocking screen is completely cleared
-                        console.log(`[Angalia Script] Successfully joined meeting (hangup button verified, lobby overlay cleared).`);
+                  } else if (hangupBtn) {
+                        console.log(`[Angalia Script] Successfully joined meeting (hangup button found).`);
                         clearInterval(pollInterval);
                         clearTimeout(safetyTimeout);
-                        console.log('[Angalia Script] Join sequence complete.');
+                        console.log('[Angalia Script] Join sequence complete (no lobby).');
                     }
-                    
+                    // If neither is found, the interval continues.
+
                 // --- STANDARD LOGIC for other states ---
                 } else {
                     let result = document.evaluate(targetXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
@@ -169,18 +115,18 @@
     function setupHangupTimer() {
         let hangupDuration = DEFAULT_DURATION_SECONDS;
         try {
-            // Get room name from URL path and force to lowercase to maintain case-insensitivity
-            const rawRoomName = window.location.pathname.substring(1);
-            const roomNameLookup = rawRoomName.toLowerCase();
+            // Get room name from URL path (e.g., /SchFrry102VisitSA)
+            const roomName = window.location.pathname.substring(1);
 
-            if (DURATION_MAP.hasOwnProperty(roomNameLookup)) {
-                hangupDuration = DURATION_MAP[roomNameLookup];
-                console.log(`[Angalia Script] Found room '${rawRoomName}' (matched as '${roomNameLookup}'). Setting duration to ${hangupDuration}s.`);
+            if (DURATION_MAP.hasOwnProperty(roomName)) {
+                hangupDuration = DURATION_MAP[roomName];
+                console.log(`[Angalia Script] Found room '${roomName}' in map. Setting duration to ${hangupDuration}s.`);
             } else {
-                console.log(`[Angalia Script] Room '${rawRoomName}' not in configuration map. Using default ${hangupDuration}s.`);
+                console.log(`[Angalia Script] Room '${roomName}' not in map. Using default ${hangupDuration}s.`);
             }
+            
             const durationMs = hangupDuration * 1000;
-
+            
             setTimeout(() => {
                 console.log(`[Angalia Script] HANGUP TIMER FIRED after ${hangupDuration}s. Starting hangup poller.`);
                 startPoller('POLL_FOR_HANGUP');
