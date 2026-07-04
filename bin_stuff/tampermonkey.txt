@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Jitsi Auto Join/Hangup (v1.5 - robust polling)
+// @name         Jitsi Auto Join/Hangup (v1.6)
 // @namespace    http://tampermonkey.net/
-// @version      1.6.2
+// @version      1.6.3
 // @description  Auto joins; auto-hangsup; based on room_name-to-duration.
 // @author       Angalia Developer
 // @match        https://meet.jit.si/*
@@ -114,13 +114,25 @@
                                 key.startsWith('__reactProps') || key.startsWith('__reactEventHandlers')
                             );
 
+                           // Bypassing browser popups: Intercept window.open and redirect the current window context instead
+                            const originalWindowOpen = window.open;
+                            window.open = function(url) {
+                                console.log('[Angalia Script] Caught popup allocation attempt. Redirecting current frame context directly to authentication target URL:', url);
+                                window.location.href = url;
+                                return window; // Return current window reference to prevent Jitsi from throwing an undefined error
+                            };
+
                             if (reactPropsKey && loginBtn[reactPropsKey] && typeof loginBtn[reactPropsKey].onClick === 'function') {
-                                console.log('[Angalia Script] Bypassing popup sandbox. Executing native React onClick handler directly.');
+                                console.log('[Angalia Script] Executing native React onClick handler...');
                                 loginBtn[reactPropsKey].onClick({ preventDefault: () => {}, stopPropagation: () => {} });
                             } else {
-                                console.log('[Angalia Script] React internal properties missing, utilizing fallback standard DOM click.');
+                                console.log('[Angalia Script] React properties missing, executing DOM fallback click.');
                                 loginBtn.click();
                             }
+
+                            // Restore original native layout method immediately after invocation pass
+                            setTimeout(() => { window.open = originalWindowOpen; }, 100); 
+
                         } catch (reactError) {
                             console.error('[Angalia Script] Exception during React execution:', reactError);
                             loginBtn.click(); // Fallback execution

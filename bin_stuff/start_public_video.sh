@@ -6,8 +6,9 @@ DEFAULT_ROOM="SchFrry102VisitSA"
 # --- Process Arguments ---
 # $1: Room Name (optional, defaults to DEFAULT_ROOM)
 ROOM_NAME="${1:-$DEFAULT_ROOM}"
+SLEEP_TIME="${2:-}"
 
-# --- NEW: Run the 13.5-minute countdown sign ---
+# --- Run the countdown sign ---
 
 # Determine PROJECTPATH based on hostname
 if [ "$(hostname)" == "jabari" ]; then
@@ -20,8 +21,8 @@ fi
 # We do NOT use '&' here, so this script will pause
 # and wait for launch_sign.sh to complete (13.5 mins)
 # before proceeding to the Jitsi launch.
-echo "Starting 13.5 minute countdown sign for room: $ROOM_NAME on path $PROJECTPATH"
-~/bin/launch_sign.sh -r "$ROOM_NAME" -p "$PROJECTPATH" 
+echo "Starting ${SLEEP_TIME:-13.5} minute countdown sign for room: $ROOM_NAME on path $PROJECTPATH"
+~/bin/launch_sign.sh -r "$ROOM_NAME" -p "$PROJECTPATH" ${SLEEP_TIME:+-t "$SLEEP_TIME"}
 echo "Countdown sign finished. Launching Jitsi..."
 # --------------------------------------------------
 
@@ -38,12 +39,11 @@ JOINED_PARAMS=$(printf "&%s" "${HASH_PARAMS[@]}")
 # Remove the leading '&'
 FULL_URL="${BASE_URL}#${JOINED_PARAMS:1}"
 
-
 # --- Launch ---
 flatpak run org.chromium.Chromium \
 --kiosk \
 --start-fullscreen \
---disable-popup-blocking  \
+--disable-popup-blocking \
 --disable-infobars \
 --no-first-run \
 --no-default-browser-check \
