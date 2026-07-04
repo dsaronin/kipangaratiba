@@ -43,6 +43,7 @@ FULL_URL="${BASE_URL}#${JOINED_PARAMS:1}"
 flatpak run org.chromium.Chromium \
 --kiosk \
 --start-fullscreen \
+--disable-popup-blocking  \
 --disable-infobars \
 --no-first-run \
 --no-default-browser-check \
