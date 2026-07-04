@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jitsi Auto Join/Hangup (v1.6)
 // @namespace    http://tampermonkey.net/
-// @version      1.6.3
+// @version      1.6.5
 // @description  Auto joins; auto-hangsup; based on room_name-to-duration.
 // @author       Angalia Developer
 // @match        https://meet.jit.si/*
@@ -12,15 +12,11 @@
 (function() {
     'use strict';
     
-    let scriptVersion = 'UNKNOWN';
-    if (typeof GM_info !== 'undefined' && GM_info.script) {
-        scriptVersion = GM_info.script.version;
-    } else {
-        // Parse the version directly from the script's header metadata block dynamically
-        const match = Function.prototype.toString.call(this).match(/@version\s+([^\s\r\n]+)/);
-        if (match) scriptVersion = match[1];
-    }
-    console.log(`[Angalia Script] v${scriptVersion} START`);
+    // --- APP VERSION ---
+    // When updating the script over SSH, increment this version string directly
+    const SCRIPT_VERSION = '1.6.5';
+
+    console.log(`[Angalia Script] v${SCRIPT_VERSION} START`);   
 
     // --- CONFIGURATION ---
     const DEFAULT_DURATION_SECONDS = 3600; // 60 minutes
