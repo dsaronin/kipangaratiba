@@ -1,0 +1,12 @@
+#!/bin/bash
+# Title: Stop Watchdog Timer
+# Description: Wrapper to safely disarm the root watchdog daemon.
+
+FLAG_FILE="/home/daudi/.watchdog_timer"
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Disarm the timer by writing 0
+echo "0" > "$FLAG_FILE"
+
+echo -e "${BLUE}Watchdog timer safely DISARMED.${NC}"

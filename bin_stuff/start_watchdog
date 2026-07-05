@@ -1,0 +1,32 @@
+#!/bin/bash
+# Title: Start Watchdog Timer
+# Description: Wrapper to safely arm the root watchdog daemon.
+# Usage: start_watchdog <minutes>
+
+FLAG_FILE="/home/daudi/.watchdog_timer"
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Check for argument
+if [ -z "$1" ]; then
+    echo "Usage: start_watchdog <minutes>"
+    echo "Example: start_watchdog 45"
+    exit 1
+fi
+
+# Validate input is a positive integer
+if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+    echo "Error: Input must be a positive integer representing minutes."
+    exit 1
+fi
+
+MINUTES=$1
+
+# Calculate 5-minute intervals (rounding up)
+INTERVALS=$(( (MINUTES + 4) / 5 ))
+
+# Arm the timer
+echo "$INTERVALS" > "$FLAG_FILE"
+
+echo -e "${BLUE}Watchdog timer ARMED.${NC}"
+echo -e "${BLUE}System will reboot in approximately $((INTERVALS * 5)) minutes.${NC}"
