@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jitsi Auto Join/Hangup (v1.6)
 // @namespace    http://tampermonkey.net/
-// @version      1.6.5
+// @version      1.7.3
 // @description  Auto joins; auto-hangsup; based on room_name-to-duration.
 // @author       Angalia Developer
 // @match        https://meet.jit.si/*
@@ -14,7 +14,7 @@
     
     // --- APP VERSION ---
     // When updating the script over SSH, increment this version string directly
-    const SCRIPT_VERSION = '1.6.5';
+    const SCRIPT_VERSION = '1.7.3';
 
     console.log(`[Angalia Script] v${SCRIPT_VERSION} START`);   
 
@@ -33,7 +33,9 @@
         join: "//div[@role='button' and contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'join meeting')]",
         // login: "//button[@data-testid='lobby.loginButton']",
         login: "//button[@data-testid='lobby.loginButton' or contains(., 'Log-in')]",
-        hangup: "//div[contains(@class, 'toolbox-icon') and contains(@class, 'hangup-button')]"
+        hangup: "//div[contains(@class, 'toolbox-icon') and contains(@class, 'hangup-button')]",
+        incallMic: "//div[@role='button' and (@aria-label='Mute microphone' or @aria-label='Unmute microphone')]",
+        incallCam: "//div[@role='button' and (@aria-label='Stop camera' or @aria-label='Start camera')]"
     };
 
     // --- STATE MACHINE FOR POLLING ---
@@ -75,7 +77,7 @@
             targetXPath = xpaths.join;
         } else if (pollerState === 'POLL_FOR_HANGUP') {
             targetXPath = xpaths.hangup;
-        } else if (pollerState !== 'POLL_FOR_POST_JOIN') {
+        } else if (pollerState !== 'POLL_FOR_POST_JOIN' && pollerState !== 'POLL_FOR_MEDIA_RESTORE') {
             console.log(`[Angalia Script] Unknown state, stopping.`);
             return;
         }
@@ -89,6 +91,38 @@
         // --- Polling Interval ---
         pollInterval = setInterval(() => {
             try {
+                
+                // INSERT:
+                // --- SPECIAL LOGIC FOR MEDIA RESTORE ---
+                if (pollerState === 'POLL_FOR_MEDIA_RESTORE') {
+                    let micNode = document.evaluate(xpaths.incallMic, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                    let camNode = document.evaluate(xpaths.incallCam, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+                    if (micNode && camNode) {
+                        console.log('[Angalia Script] Toolbar mounted. Evaluating media stream states...');
+                        
+                        let micLabel = micNode.getAttribute('aria-label') || '';
+                        let camLabel = camNode.getAttribute('aria-label') || '';
+
+                        if (micLabel.toLowerCase().includes('unmute')) {
+                            console.log('[Angalia Script] Microphone is muted. Firing unmute trigger.');
+                            micNode.click();
+                        } else {
+                            console.log('[Angalia Script] Microphone is already active.');
+                        }
+
+                        if (camLabel.toLowerCase().includes('start')) {
+                            console.log('[Angalia Script] Camera is muted. Firing stream start trigger.');
+                            camNode.click();
+                        } else {
+                            console.log('[Angalia Script] Camera is already active.');
+                        }
+
+                        clearInterval(pollInterval);
+                        clearTimeout(safetyTimeout);
+                        startPoller('POLL_FOR_POST_JOIN');
+                    }
+                }
 
                 // --- SPECIAL LOGIC FOR POST-JOIN ---
                 // This state waits for EITHER the lobby OR the meeting to load.
@@ -147,6 +181,7 @@
                     
                 // --- STANDARD LOGIC for other states ---
                 } else {
+
                     let result = document.evaluate(targetXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
                     let button = result.singleNodeValue;
 
@@ -157,9 +192,9 @@
                         clearTimeout(safetyTimeout);
 
                         if (pollerState === 'POLL_FOR_JOIN') {
-                            console.log('[Angalia Script] Join clicked. Now polling for Post-Join (Lobby or Hangup).');
+                            console.log('[Angalia Script] Join clicked. Transitioning to POLL_FOR_MEDIA_RESTORE.');
                             // NO TIMEOUT. Immediately start the next poller.
-                            startPoller('POLL_FOR_POST_JOIN');
+                            startPoller('POLL_FOR_MEDIA_RESTORE');
                         } else if (pollerState === 'POLL_FOR_HANGUP') {
                             console.log('[Angalia Script] Hangup complete.');
                         }
