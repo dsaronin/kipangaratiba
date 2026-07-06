@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Jitsi Auto Join/Hangup (v1.6)
+// @name         Jitsi Auto Join/Hangup (v1.7)
 // @namespace    http://tampermonkey.net/
-// @version      1.7.3
+// @version      1.7.9
 // @description  Auto joins; auto-hangsup; based on room_name-to-duration.
 // @author       Angalia Developer
 // @match        https://meet.jit.si/*
@@ -14,7 +14,7 @@
     
     // --- APP VERSION ---
     // When updating the script over SSH, increment this version string directly
-    const SCRIPT_VERSION = '1.7.3';
+    const SCRIPT_VERSION = '1.7.9';
 
     console.log(`[Angalia Script] v${SCRIPT_VERSION} START`);   
 
@@ -42,6 +42,7 @@
     let pollInterval = null;
     let safetyTimeout = null;
     let pollerState = null;
+    let mediaChecked = false;
 
     // --- TELEMETRY HELPERS ---
     function getElementTelemetry(node, selectorName) {
@@ -120,6 +121,7 @@
 
                         clearInterval(pollInterval);
                         clearTimeout(safetyTimeout);
+                        mediaChecked = true;
                         startPoller('POLL_FOR_POST_JOIN');
                     }
                 }
@@ -172,15 +174,32 @@
                         clearTimeout(safetyTimeout);
                         console.log('[Angalia Script] Join/Login sequence complete.');
                     } else if (hangupBtn && !isScreenBlocked) {
-                        // Only verify successful call entry if the hangup button is accessible AND the blocking screen is completely cleared
-                        console.log(`[Angalia Script] Successfully joined meeting (hangup button verified, lobby overlay cleared).`);
-                        clearInterval(pollInterval);
-                        clearTimeout(safetyTimeout);
-                        console.log('[Angalia Script] Join sequence complete.');
+                        if (!mediaChecked) {
+                            console.log(`[Angalia Script] Successfully joined meeting. Advancing to media restore phase.`);
+                            clearInterval(pollInterval);
+                            clearTimeout(safetyTimeout);
+                            startPoller('POLL_FOR_MEDIA_RESTORE');
+                        } else {
+                            console.log(`[Angalia Script] Call stable and media restore complete. Active tracking loop idling.`);
+                            clearInterval(pollInterval);
+                            clearTimeout(safetyTimeout);
+                        }
                     }
                     
                 // --- STANDARD LOGIC for other states ---
                 } else {
+
+                    // Direct-entry bypass if call loads directly without a landing page button
+                    if (pollerState === 'POLL_FOR_JOIN') {
+                        let activeCallActive = document.evaluate(xpaths.incallMic, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                        if (activeCallActive) {
+                            console.log('[Angalia Script] Direct entry detected. Transitioning to POLL_FOR_POST_JOIN to wait for layout stability.');
+                            clearInterval(pollInterval);
+                            clearTimeout(safetyTimeout);
+                            startPoller('POLL_FOR_POST_JOIN');
+                            return;
+                        }
+                    }
 
                     let result = document.evaluate(targetXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
                     let button = result.singleNodeValue;
@@ -192,9 +211,8 @@
                         clearTimeout(safetyTimeout);
 
                         if (pollerState === 'POLL_FOR_JOIN') {
-                            console.log('[Angalia Script] Join clicked. Transitioning to POLL_FOR_MEDIA_RESTORE.');
-                            // NO TIMEOUT. Immediately start the next poller.
-                            startPoller('POLL_FOR_MEDIA_RESTORE');
+                            console.log('[Angalia Script] Join clicked. Now polling for Post-Join (Lobby or Hangup).');
+                            startPoller('POLL_FOR_POST_JOIN');
                         } else if (pollerState === 'POLL_FOR_HANGUP') {
                             console.log('[Angalia Script] Hangup complete.');
                         }
