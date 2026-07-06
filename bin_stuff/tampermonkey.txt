@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Jitsi Auto Join/Hangup (v1.7)
+// @name         Jitsi Auto Join/Hangup (v1.8)
 // @namespace    http://tampermonkey.net/
-// @version      1.7.9
+// @version      1.8.1
 // @description  Auto joins; auto-hangsup; based on room_name-to-duration.
 // @author       Angalia Developer
 // @match        https://meet.jit.si/*
@@ -14,7 +14,7 @@
     
     // --- APP VERSION ---
     // When updating the script over SSH, increment this version string directly
-    const SCRIPT_VERSION = '1.7.9';
+    const SCRIPT_VERSION = '1.8.1';
 
     console.log(`[Angalia Script] v${SCRIPT_VERSION} START`);   
 
@@ -191,15 +191,18 @@
 
                     // Direct-entry bypass if call loads directly without a landing page button
                     if (pollerState === 'POLL_FOR_JOIN') {
+                        let joinBtnPresent = document.evaluate(xpaths.join, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
                         let activeCallActive = document.evaluate(xpaths.incallMic, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                        if (activeCallActive) {
-                            console.log('[Angalia Script] Direct entry detected. Transitioning to POLL_FOR_POST_JOIN to wait for layout stability.');
+                        
+                        // Only bypass if in-call elements exist AND the join button is completely missing
+                        if (activeCallActive && !joinBtnPresent) {
+                            console.log('[Angalia Script] Direct entry verified (Join button absent). Transitioning to POLL_FOR_POST_JOIN.');
                             clearInterval(pollInterval);
                             clearTimeout(safetyTimeout);
                             startPoller('POLL_FOR_POST_JOIN');
                             return;
                         }
-                    }
+                    }                    
 
                     let result = document.evaluate(targetXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
                     let button = result.singleNodeValue;
