@@ -39,10 +39,13 @@ JOINED_PARAMS=$(printf "&%s" "${HASH_PARAMS[@]}")
 # Remove the leading '&'
 FULL_URL="${BASE_URL}#${JOINED_PARAMS:1}"
 
-# --kiosk \
-# --start-fullscreen \
 # --- Launch ---
-flatpak run org.chromium.Chromium \
+flatpak run \
+--filesystem="${HOME}/log" \
+--env=CHROME_LOG_FILE="${HOME}/log/publicjitsichrome.log" \
+org.chromium.Chromium \
+--kiosk \
+--start-fullscreen \
 --disable-popup-blocking \
 --disable-infobars \
 --no-first-run \
@@ -50,6 +53,8 @@ flatpak run org.chromium.Chromium \
 --disable-translate \
 --use-fake-ui-for-media-stream \
 --test-type \
+--enable-logging \
+--log-level=0 \
 --user-data-dir=${HOME}/.config/chromium-kiosk-public-jitsi \
 "${FULL_URL}" &
 
