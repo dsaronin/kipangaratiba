@@ -52,6 +52,7 @@ org.chromium.Chromium \
 --no-default-browser-check \
 --disable-translate \
 --use-fake-ui-for-media-stream \
+--force-wave-audio \
 --test-type \
 --enable-logging \
 --log-level=0 \
