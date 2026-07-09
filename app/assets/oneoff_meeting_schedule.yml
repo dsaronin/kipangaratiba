@@ -58,6 +58,12 @@
   start_time: '10:00'
   stop_time: '12:10'
 
+
+- meeting: 'EllesGantesGS1976'
+  meeting_date: '2026-07-10'
+  start_time: '10:00'
+  stop_time: '12:10'
+
 #
 #  MONTHLY MEETINGS -- 3rd Saturdays
 #
