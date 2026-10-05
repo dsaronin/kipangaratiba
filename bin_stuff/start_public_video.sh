@@ -29,10 +29,14 @@ echo "Countdown sign finished. Launching Jitsi..."
 # --- Build URL ---
 # Build the URL with all parameters in the hash
 BASE_URL="https://meet.jit.si/${ROOM_NAME}"
-HASH_PARAMS=()
-#    "config.prejoinPageEnabled=false"
-#    "config.startWithAudioMuted=false"
-#    "config.startWithVideoMuted=false"
+HASH_PARAMS=(
+    "config.prejoinPageEnabled=false"
+    "config.startWithAudioMuted=false"
+    "config.startWithVideoMuted=false"
+    "config.constraints.video.frameRate.max=15"
+    "config.resolution=480"
+    "config.disableLocalVideoFlip=true"
+)
 
 # Join parameters with '&'
 JOINED_PARAMS=$(printf "&%s" "${HASH_PARAMS[@]}")
@@ -52,10 +56,7 @@ org.chromium.Chromium \
 --no-default-browser-check \
 --disable-translate \
 --use-fake-ui-for-media-stream \
---force-wave-audio \
---test-type \
 --enable-logging \
 --log-level=0 \
 --user-data-dir=${HOME}/.config/chromium-kiosk-public-jitsi \
 "${FULL_URL}" &
-
