@@ -36,6 +36,8 @@ HASH_PARAMS=(
     "config.constraints.video.frameRate.max=15"
     "config.resolution=480"
     "config.disableLocalVideoFlip=true"
+    "config.disableSimulcast=true"
+    "config.enableLayerSuspension=false"
 )
 
 # Join parameters with '&'
