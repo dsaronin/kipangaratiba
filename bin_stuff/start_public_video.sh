@@ -33,11 +33,8 @@ HASH_PARAMS=(
     "config.prejoinPageEnabled=false"
     "config.startWithAudioMuted=false"
     "config.startWithVideoMuted=false"
-    "config.constraints.video.frameRate.max=15"
-    "config.resolution=480"
+    "config.resolution=720"
     "config.disableLocalVideoFlip=true"
-    "config.disableSimulcast=true"
-    "config.enableLayerSuspension=false"
 )
 
 # Join parameters with '&'
